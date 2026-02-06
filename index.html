@@ -3,1108 +3,3172 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>PSY-WRITER v2 — sobre, sidebar gauche, modals</title>
+<title>Noteflow</title>
+
 <style>
   :root{
-    --bg:#0f1115;
-    --fg:#e9edf5;
-    --muted:#a8b0bd;
-    --line:rgba(255,255,255,0.14);
-    --panel:rgba(255,255,255,0.06);
-    --panel2:rgba(255,255,255,0.09);
-    --shadow:0 18px 60px rgba(0,0,0,0.45);
-    --r:16px;
-    --font: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial;
+    /* Dark (default) */
+    --bg:#0b0c10;
+    --fg:#eef1f7;
+    --muted:#a7afc2;
+    --line:rgba(255,255,255,.12);
+
+    --glass: rgba(255,255,255,.06);
+    --glass2: rgba(255,255,255,.085);
+    --blur: 14px;
+
+    --shadow: 0 18px 70px rgba(0,0,0,.55);
+    --r: 18px;
+    --r2: 14px;
+
+    --font: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial;
     --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --hl: rgba(255,255,255,0.07); /* surbrillance */
-    --ok: rgba(46,229,157,0.55);
-    --warn: rgba(255,207,90,0.55);
-    --bad: rgba(255,107,107,0.55);
+
+    --fs-xxs: 11px;
+    --fs-xs: 12px;
+    --fs-sm: 13px;
+    --fs-md: 14px;
+    --fs-lg: 15px;
+
+    --tap: rgba(255,255,255,.11);
+    --tap2: rgba(255,255,255,.16);
+
+    --accent: rgba(255,255,255,.22);
+    --accent2: rgba(255,255,255,.32);
+
+    --selbg: rgba(255,255,255,.14);
+    --selbr: rgba(255,255,255,.26);
+
+    --danger: rgba(255,255,255,.22);
   }
+
   [data-theme="light"]{
     --bg:#f7f8fb;
-    --fg:#0d1321;
-    --muted:#4b5563;
-    --line:rgba(0,0,0,0.10);
-    --panel:rgba(0,0,0,0.04);
-    --panel2:rgba(0,0,0,0.06);
-    --shadow:0 18px 60px rgba(0,0,0,0.10);
-    --hl: rgba(0,0,0,0.04);
+    --fg:#101526;
+    --muted:#4f5a6b;
+    --line:rgba(0,0,0,.12);
+
+    --glass: rgba(0,0,0,.04);
+    --glass2: rgba(0,0,0,.06);
+    --shadow: 0 16px 60px rgba(0,0,0,.12);
+
+    --tap: rgba(0,0,0,.04);
+    --tap2: rgba(0,0,0,.07);
+
+    --accent: rgba(0,0,0,.14);
+    --accent2: rgba(0,0,0,.22);
+
+    --selbg: rgba(0,0,0,.06);
+    --selbr: rgba(0,0,0,.16);
+
+    --danger: rgba(0,0,0,.14);
   }
+
   *{box-sizing:border-box}
-  body{margin:0; background:var(--bg); color:var(--fg); font-family:var(--font)}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: var(--fs-md);
+    letter-spacing:.1px;
+  }
+
+  /* Glass surface helper */
+  .glass{
+    background: var(--glass);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+  }
+
+  /* Inputs */
+  button, select, input, textarea{
+    font: inherit;
+    color: var(--fg);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 9px 10px;
+    outline: none;
+  }
+  input, select{ font-size: var(--fs-sm); }
+  textarea{
+    font-size: var(--fs-sm);
+    border-radius: var(--r2);
+    padding: 10px 11px;
+    min-height: 120px;
+    resize: vertical;
+  }
+  button{
+    cursor:pointer;
+    user-select:none;
+  }
+  button:disabled{opacity:.5; cursor:not-allowed}
+
+  /* Tiny monochrome SVG icons */
+  .ico{
+    width:18px;height:18px;
+    fill:none;
+    stroke: currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    color: var(--fg);
+  }
+  .ico.muted{ color: var(--muted); }
+
   header{
-    position:sticky; top:0; z-index:20;
-    border-bottom:1px solid var(--line);
-    background:var(--bg);
+    position: sticky;
+    top:0;
+    z-index: 60;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.0);
   }
   .top{
-    max-width:1500px; margin:0 auto; padding:12px 14px;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 10px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
   }
-  .brand b{letter-spacing:.4px; font-weight:850}
-  .brand small{display:block; color:var(--muted); font-size:12px; margin-top:2px}
-
-  .btn{
-    border:1px solid var(--line);
-    background:var(--panel);
-    color:var(--fg);
-    padding:9px 12px;
-    border-radius:999px;
-    cursor:pointer;
-    font-weight:650;
-    user-select:none;
-    transition:none;
-    box-shadow:none;
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width: 200px;
   }
-  .btn.ok{border-color:var(--ok)}
-  .btn.warn{border-color:var(--warn)}
-  .btn.bad{border-color:var(--bad)}
-  .btn:active{transform:none}
+  .brand b{
+    font-weight: 850;
+    letter-spacing: .25px;
+    font-size: var(--fs-lg);
+  }
+  .brand small{
+    display:block;
+    color: var(--muted);
+    font-size: var(--fs-xxs);
+    margin-top: 2px;
+  }
 
-  .bar{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center}
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+  }
+
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .pill strong{ color: var(--fg); font-weight: 750; }
+
+  .iconbtn{
+    width: 42px;
+    height: 42px;
+    border-radius: 16px;
+    padding: 0;
+    display:grid;
+    place-items:center;
+    background: var(--glass);
+  }
+
+  .tplSelect{
+    width: min(340px, 52vw);
+    border-radius: 16px;
+    background: var(--glass);
+  }
 
   /* Layout */
   .wrap{
-    max-width:1500px; margin:0 auto; padding:14px;
-    display:grid; grid-template-columns: 360px 1fr; gap:12px;
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 12px;
+    display:grid;
+    grid-template-columns: 420px 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 1020px){
+    .wrap{ grid-template-columns: 1fr; }
+    aside{ display:none; }
   }
 
-  /* Sidebar visible, drawer on small screens */
+  /* Sidebar */
   aside{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:var(--r);
-    box-shadow:var(--shadow);
+    min-height: calc(100vh - 86px);
+    border-radius: var(--r);
     overflow:hidden;
-    min-height: calc(100vh - 92px);
   }
   .sideHead{
-    padding:12px; border-bottom:1px solid var(--line);
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
   }
-  .sideHead b{font-size:14px}
-  .sideBody{padding:12px; overflow:auto; max-height: calc(100vh - 160px)}
+  .sideHead b{ font-size: var(--fs-sm); }
+  .tabs{
+    display:flex;
+    gap:6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.02);
+  }
+  [data-theme="light"] .tabs{ background: rgba(255,255,255,.6); }
 
-  main .card{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:var(--r);
-    box-shadow:var(--shadow);
+  .tab{
+    flex: 1 1 auto;
+    text-align:center;
+    padding: 8px 9px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: transparent;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    cursor:pointer;
+    user-select:none;
+  }
+  .tab.active{
+    color: var(--fg);
+    background: var(--selbg);
+    border-color: var(--selbr);
+  }
+
+  .sideBody{
+    padding: 12px;
+    overflow:auto;
+    max-height: calc(100vh - 170px);
+  }
+
+  label{
+    display:block;
+    margin: 10px 0 6px;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+  }
+
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .col{ flex: 1 1 210px; min-width: 190px; }
+
+  /* Main card */
+  .card{
+    border-radius: var(--r);
     overflow:hidden;
   }
   .cardHead{
-    padding:12px 14px; border-bottom:1px solid var(--line);
-    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    flex-wrap:wrap;
   }
-  .chip{
-    border:1px solid var(--line);
-    background:var(--panel2);
-    color:var(--muted);
-    padding:6px 10px;
-    border-radius:999px;
-    font-size:12px;
-    white-space:nowrap;
-  }
-  .body{padding:12px 14px}
-
-  label{display:block; color:var(--muted); font-size:12px; margin:10px 0 6px}
-  input, select, textarea{
-    width:100%;
-    border:1px solid var(--line);
-    background:rgba(0,0,0,0.10);
-    color:var(--fg);
-    border-radius:12px;
-    padding:10px;
-    font:inherit;
-    outline:none;
-  }
-  [data-theme="light"] input, [data-theme="light"] select, [data-theme="light"] textarea{
-    background:rgba(255,255,255,0.92);
-  }
-  textarea{min-height:130px; resize:vertical}
-  .mono{font-family:var(--mono)}
-  .row{display:flex; gap:10px; flex-wrap:wrap}
-  .col{flex:1 1 220px; min-width:220px}
+  .cardHead b{ font-size: var(--fs-sm); }
+  .cardBody{ padding: 12px 14px; }
 
   .section{
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:10px;
-    background:var(--hl);
-    margin-top:10px;
+    border: 1px solid var(--line);
+    border-radius: var(--r2);
+    background: var(--glass);
+    padding: 10px;
+    margin-top: 10px;
   }
-  .sectionHead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
-  .sectionHead b{font-size:13px}
-  .small{color:var(--muted); font-size:12px}
-
-  /* Checklist */
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
-  @media (max-width: 1050px){ .grid{grid-template-columns:1fr} }
-  .chk{
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:8px 10px;
-    background:rgba(0,0,0,0.06);
-    display:flex; gap:10px; align-items:flex-start;
+  .sectionHead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    margin-bottom: 8px;
   }
-  [data-theme="light"] .chk{background:rgba(255,255,255,0.70)}
-  .chk input{width:auto; margin-top:3px}
-  .chk b{font-size:13px}
-  .chk small{display:block; margin-top:2px; color:var(--muted); font-size:12px}
-
-  /* Templates list */
-  .tplItem{
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:10px;
-    background:rgba(0,0,0,0.06);
+  .sectionHead .left{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+  .sectionHead b{ font-size: var(--fs-sm); }
+  .toggle{
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display:grid;
+    place-items:center;
+    background: var(--glass2);
+    border: 1px solid var(--line);
     cursor:pointer;
   }
-  [data-theme="light"] .tplItem{background:rgba(255,255,255,0.70)}
-  .tplItem.active{outline:2px solid rgba(46,229,157,0.22)}
-  .tplItem b{display:block; font-size:13px}
-  .tplItem small{display:block; color:var(--muted); margin-top:3px; font-size:12px}
+  .collapsed .sectionBody{ display:none; }
 
-  /* Footer toolbar */
-  .tool{
-    padding:10px 14px;
-    border-top:1px solid var(--line);
-    background:rgba(0,0,0,0.04);
-    display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+  /* Selectable chips (click-to-select) */
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 8px;
   }
-  [data-theme="light"] .tool{background:rgba(255,255,255,0.55)}
+  .chip{
+    border: 1px solid var(--line);
+    background: var(--tap);
+    border-radius: 999px;
+    padding: 8px 10px;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    cursor:pointer;
+    user-select:none;
+    transition: background .08s ease, border-color .08s ease, color .08s ease;
+  }
+  .chip:hover{ background: var(--tap2); }
+  .chip.selected{
+    background: var(--selbg);
+    border-color: var(--selbr);
+    color: var(--fg);
+  }
+  .chip.small{ padding: 7px 9px; font-size: var(--fs-xxs); }
 
-  /* Modal surbrillance */
-  .modalMask{
-    position:fixed; inset:0; z-index:50;
-    background:rgba(0,0,0,0.55);
+  /* Suggestion blocks */
+  .suggestGrid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (max-width: 1200px){ .suggestGrid{ grid-template-columns: 1fr; } }
+
+  .sugg{
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--tap);
+    padding: 9px 10px;
+    cursor:pointer;
+    user-select:none;
+    transition: background .08s ease, border-color .08s ease;
+  }
+  .sugg:hover{ background: var(--tap2); }
+  .sugg b{ display:block; font-size: var(--fs-sm); }
+  .sugg small{ display:block; font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
+
+  /* Output area - resizable preview */
+  .outWrap{
+    display:flex;
+    gap: 10px;
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+  .outWrap .grow{ flex: 1 1 520px; min-width: 280px; }
+  .outWrap .miniCol{ flex: 0 0 240px; min-width: 220px; }
+
+  .mono{ font-family: var(--mono); }
+
+  .footerBar{
+    border-top: 1px solid var(--line);
+    padding: 10px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    flex-wrap:wrap;
+    background: rgba(0,0,0,.02);
+  }
+  [data-theme="light"] .footerBar{ background: rgba(255,255,255,.65); }
+
+  /* Modal overlay (surbrillance) */
+  .mask{
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0,0,0,.62);
     display:none;
-    align-items:center; justify-content:center;
-    padding:14px;
+    align-items:center;
+    justify-content:center;
+    padding: 12px;
   }
   .modal{
-    width:min(980px, 100%);
-    background:var(--bg);
-    border:1px solid var(--line);
-    border-radius:20px;
-    box-shadow:var(--shadow);
+    width: min(1120px, 100%);
+    border-radius: 22px;
     overflow:hidden;
   }
   .modalHead{
-    padding:12px 14px; border-bottom:1px solid var(--line);
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
   }
-  .modalBody{padding:12px 14px; max-height:70vh; overflow:auto}
-  .modal.show .modalBody{background:var(--panel)}
-  .modalHead b{font-size:14px}
-  .k{color:var(--muted); font-size:12px}
+  .modalHead b{ font-size: var(--fs-sm); }
+  .modalBody{
+    padding: 12px 14px;
+    max-height: 74vh;
+    overflow:auto;
+  }
+  .modalFoot{
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap: 8px;
+    flex-wrap:wrap;
+    background: rgba(0,0,0,.02);
+  }
+  [data-theme="light"] .modalFoot{ background: rgba(255,255,255,.65); }
 
-  /* Drawer mobile */
+  /* Mobile drawer */
   .drawerMask{
-    position:fixed; inset:0; z-index:60;
-    background:rgba(0,0,0,0.55);
+    position:fixed; inset:0; z-index:80;
+    background: rgba(0,0,0,.62);
     display:none;
   }
   .drawer{
-    position:fixed; top:0; left:0; z-index:61;
-    width:min(380px, 92vw);
+    position:fixed; top:0; left:0; z-index:81;
+    width: min(420px, 92vw);
     height:100%;
-    background:var(--bg);
-    border-right:1px solid var(--line);
-    box-shadow:var(--shadow);
-    transform:translateX(-105%);
-    transition: transform .15s ease;
+    transform: translateX(-105%);
+    transition: transform .16s ease;
+    border-right: 1px solid var(--line);
+    border-radius: 0 22px 22px 0;
+    overflow:hidden;
   }
-  .drawer.open{transform:translateX(0)}
-  .drawer .sideBody{max-height: calc(100vh - 54px)}
-  @media (max-width: 980px){
-    .wrap{grid-template-columns:1fr}
-    aside{display:none}
-    #btnMenu{display:inline-block}
-  }
-  @media (min-width: 981px){
-    #btnMenu{display:none}
-  }
+  .drawer.open{ transform: translateX(0); }
+  .drawer .sideBody{ max-height: calc(100vh - 170px); }
+
+  /* Tables */
+  table{ width:100%; border-collapse:separate; border-spacing:6px; }
+  th, td{ text-align:left; }
+  th{ font-size: var(--fs-xs); color: var(--muted); font-weight:650; }
+  .num{ width: 92px; }
+
+  /* Helper */
+  .mini{ color: var(--muted); font-size: var(--fs-xs); }
+  .sep{ height: 10px; }
 </style>
 </head>
 
 <body data-theme="dark">
+
 <header>
   <div class="top">
     <div class="brand">
-      <b>PSY-WRITER v2</b>
-      <small>sobre • sidebar gauche • sous-options en surbrillance • offline</small>
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14"/><path d="M4 19a2 2 0 0 0 2 2h12"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h6"/></svg>
+      <div>
+        <b>Noteflow</b>
+        <small>sélection → phrases fluides • vitré • modales</small>
+      </div>
     </div>
-    <div class="bar">
-      <button class="btn" id="btnMenu">Menu</button>
-      <button class="btn" id="btnTheme">Mode clair/sombre</button>
-      <button class="btn ok" id="btnGenerate">Générer</button>
-      <button class="btn" id="btnCopy">Copier</button>
-      <button class="btn warn" id="btnExport">Exporter</button>
-      <button class="btn" id="btnImport">Importer</button>
-      <button class="btn bad" id="btnReset">Reset</button>
+
+    <div class="toolbar">
+      <select id="tplSelect" class="tplSelect" title="Modèle"></select>
+
+      <span class="pill" title="État sections">
+        <svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z"/></svg>
+        <span id="reqChip"><strong>—</strong></span>
+      </span>
+
+      <button class="iconbtn" id="btnTheme" title="Clair / sombre">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 3a7 7 0 0 0 0 14"/></svg>
+      </button>
+
+      <button class="iconbtn" id="btnFocus" title="Focus (masque l’accessoire)">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V4h3"/><path d="M20 7V4h-3"/><path d="M4 17v3h3"/><path d="M20 17v3h-3"/><path d="M7 12h10"/></svg>
+      </button>
+
+      <button class="iconbtn" id="btnCopy" title="Copier le texte final">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8z"/><path d="M4 4h12v4"/></svg>
+      </button>
+
+      <button class="iconbtn" id="btnExport" title="Exporter JSON">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 21h16"/></svg>
+      </button>
+
+      <button class="iconbtn" id="btnImport" title="Importer JSON">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M8 13l4-4 4 4"/><path d="M4 3h16"/></svg>
+      </button>
+
+      <button class="iconbtn" id="btnMenu" title="Menu (mobile)">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+      </button>
     </div>
   </div>
 </header>
 
 <div class="wrap">
-  <!-- Sidebar desktop -->
-  <aside id="sideDesktop"></aside>
+  <aside id="sidebar" class="glass"></aside>
 
   <main>
-    <div class="card">
+    <div class="card glass">
       <div class="cardHead">
         <b id="docTitle">—</b>
-        <div class="row" style="gap:8px">
-          <span class="chip" id="chipMode">Mode : —</span>
-          <span class="chip" id="chipTpl">Modèle : —</span>
+        <span class="pill" title="Date">
+          <svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><path d="M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>
+          <strong id="today">—</strong>
+        </span>
+      </div>
+
+      <div class="cardBody" id="content"></div>
+
+      <div class="cardBody">
+        <div class="outWrap">
+          <div class="grow">
+            <label>Aperçu / texte final</label>
+            <textarea id="output" class="mono" style="min-height:300px"></textarea>
+          </div>
+          <div class="miniCol">
+            <label>Affichage</label>
+            <div class="chips">
+              <div class="chip" id="btnOutBig" title="Agrandir l’aperçu">Grand</div>
+              <div class="chip" id="btnOutSmall" title="Réduire l’aperçu">Compact</div>
+              <div class="chip" id="btnOutLock" title="Verrouiller (évite les changements involontaires)">Lock</div>
+            </div>
+
+            <div class="sep"></div>
+
+            <label>Outils (modales)</label>
+            <div class="chips">
+              <div class="chip" id="btnMeds" title="Médicaments">Médicaments</div>
+              <div class="chip" id="btnPercep" title="Perceptions (délires / hallucinations)">Perceptions</div>
+              <div class="chip" id="btnRisk" title="Sécurité (suicidaire / hétéro)">Sécurité</div>
+              <div class="chip" id="btnTaper" title="Schéma sevrage (Valium / Temesta)">Sevrage</div>
+              <div class="chip" id="btnMail" title="Emails types">Emails</div>
+              <div class="chip" id="btnTplEdit" title="Éditer / créer des modèles">Modèles</div>
+            </div>
+
+            <div class="sep"></div>
+            <div class="mini">
+              Logique : tu cliques pour sélectionner, et Noteflow écrit pour toi en phrases correctes.
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="body" id="content"></div>
+      <div class="footerBar">
+        <div class="pill" title="Aide">
+          <svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18h.01"/><path d="M12 14c2-2 4-3 4-6a4 4 0 0 0-8 0"/></svg>
+          <span class="mini">Cliquer = sélectionner • Modales = sous-choix • Focus = épure</span>
+        </div>
 
-      <div class="body" id="outWrap">
-        <label>Texte final (modifiable)</label>
-        <textarea id="output" class="mono" style="min-height:320px"></textarea>
-      </div>
-
-      <div class="tool">
-        <button class="btn ok" id="btnGenerate2">Générer</button>
-        <button class="btn" id="btnCopy2">Copier</button>
-        <button class="btn" id="btnDSM">DSM (surbrillance)</button>
+        <div class="chips">
+          <div class="chip" id="btnGenerate" title="Régénérer selon les sélections">Régénérer</div>
+          <div class="chip" id="btnReset" title="Reset complet">Reset</div>
+        </div>
       </div>
     </div>
   </main>
 </div>
 
-<!-- Drawer mobile -->
+<!-- Drawer (mobile) -->
 <div class="drawerMask" id="drawerMask"></div>
-<div class="drawer" id="drawer"></div>
+<div class="drawer glass" id="drawer"></div>
 
-<!-- Modal DSM -->
-<div class="modalMask" id="modalMask">
-  <div class="modal" id="modal">
+<!-- Modal -->
+<div class="mask" id="mask">
+  <div class="modal glass" id="modal">
     <div class="modalHead">
-      <b>DSM — bibliothèque clinique (non-verbatim)</b>
-      <button class="btn" id="btnCloseModal">Fermer</button>
+      <b id="modalTitle">—</b>
+      <button id="modalClose" class="iconbtn" title="Fermer">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6l-12 12"/></svg>
+      </button>
     </div>
     <div class="modalBody" id="modalBody"></div>
+    <div class="modalFoot" id="modalFoot"></div>
   </div>
 </div>
 
 <script>
-/* ===========================
-   PSY-WRITER v2 — offline
-   - UI: sidebar gauche + drawer mobile
-   - Surbrillance: modal DSM
-   - DSM: paraphrases, pas texte exact
-   =========================== */
+/* ==========================================================
+   Noteflow — single-file offline
+   - Minimal text on UI, monochrome icons only
+   - Click-to-select chips instead of checkboxes (when possible)
+   - More suggestions = learning tool
+   - Templates: built-in + editable + new template builder (blocks)
+   - Meds: by category + route + frequency (clickable)
+   - Sevrage: Valium or Temesta; Temesta only 2.5mg and 1.25mg (half) increments
+   - Sevrage table: weekday + date; shifting J1 auto shifts all
+   - Output: expandable / collapsible
+   ========================================================== */
 
-const LS="psywriter_v2_state";
-const $=id=>document.getElementById(id);
-const todayFR=()=>{const d=new Date();const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`;}
-const clean=s=>String(s||"").replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").replace(/[ \t]{2,}/g," ").trim();
+const LS = "noteflow_v1_state";
+const $ = (id)=>document.getElementById(id);
 
-function sentenceJoin(a){
-  a=(a||[]).map(x=>String(x||"").trim()).filter(Boolean);
+function pad2(n){ return String(n).padStart(2,"0"); }
+function todayFR(){
+  const d=new Date();
+  return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`;
+}
+$("today").textContent = todayFR();
+
+function isoToday(){
+  const d=new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function addDaysISO(iso, days){
+  const [y,m,d] = iso.split("-").map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate()+days);
+  return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`;
+}
+function frFromIso(iso){
+  if(!iso) return "";
+  const [y,m,d]=iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+function weekdayFR(iso){
+  const [y,m,d]=iso.split("-").map(Number);
+  const dt = new Date(y, m-1, d);
+  return ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"][dt.getDay()];
+}
+
+function cleanSpaces(s){
+  return String(s||"").replace(/\s+/g," ").replace(/\s+([,.;:!?])/g,"$1").trim();
+}
+function capSentence(s){
+  s = cleanSpaces(s);
+  if(!s) return "";
+  s = s[0].toUpperCase()+s.slice(1);
+  if(!/[.!?]$/.test(s)) s += ".";
+  return s;
+}
+function joinCommas(items){
+  const a=(items||[]).map(x=>cleanSpaces(x)).filter(Boolean);
   if(!a.length) return "";
   if(a.length===1) return a[0];
-  if(a.length===2) return a[0]+" et "+a[1];
-  return a.slice(0,-1).join(", ")+", et "+a[a.length-1];
+  if(a.length===2) return `${a[0]}, ${a[1]}`;
+  return `${a.slice(0,-1).join(", ")}, ${a[a.length-1]}`;
 }
-function paraJoin(a){
-  a=(a||[]).map(x=>String(x||"").trim()).filter(Boolean);
-  return a.join(" ");
+function dedupe(arr){
+  const seen=new Set(); const out=[];
+  for(const s of arr){
+    const k = s.toLowerCase().replace(/\s+/g," ").trim();
+    if(!k || seen.has(k)) continue;
+    seen.add(k); out.push(s);
+  }
+  return out;
+}
+function esc(v){ return String(v||"").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function num(v, fb=0){
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fb;
+}
+function round2(x){ return Math.round(Number(x)*100)/100; }
+function round125(x){ // round to nearest 1.25
+  return Math.round(Number(x)/1.25)*1.25;
 }
 
-/* ---------------------------
-   DSM-style library (paraphrases)
-   IMPORTANT: pas de texte DSM exact.
-   Chaque diag = "noyau" + checklist clinique + générateur de formulation.
---------------------------- */
-const DSM = [
+/* ------------------------------
+   Built-in blocks
+------------------------------ */
+const BLOCKS = [
+  { id:"context", name:"Motif / contexte", required:true },
+  { id:"anamnese", name:"Anamnèse", required:true },
+  { id:"antecedents", name:"Antécédents / suivi", required:false },
+  { id:"home_meds", name:"Traitement domicile", required:false },
+  { id:"mse", name:"Examen mental", required:true },
+  { id:"substances", name:"Consommations", required:false },
+  { id:"alco_detail", name:"Alcool (détaillé)", required:false },
+  { id:"withdrawal", name:"Sevrage (symptômes/complications)", required:false },
+  { id:"taper", name:"Schéma sevrage", required:false },
+  { id:"plan", name:"Plan / orientations", required:true },
+  { id:"work", name:"Travail", required:false },
+  { id:"summary", name:"Synthèse", required:false }
+];
+
+const DEFAULT_CONNECTORS = ["Dans ce contexte","À ce stade","Par ailleurs","En parallèle","Sur le plan clinique"];
+
+/* ------------------------------
+   Suggestions library (learning)
+   - Click suggestion => inserts/sets field + regenerates
+------------------------------ */
+const SUGG = {
+  motif: [
+    {t:"sevrage alcool", d:"Admission en unité de sevrage alcool."},
+    {t:"suivi anxiodépressif", d:"Suivi psychiatrique pour symptomatologie anxiodépressive."},
+    {t:"évaluation", d:"Demande d’évaluation clinique et de clarification."}
+  ],
+  contexte: [
+    {t:"stress psychosocial", d:"Contexte de stress psychosocial marqué."},
+    {t:"rupture / conflit", d:"Contexte relationnel instable avec conflit récent."},
+    {t:"retentissement fonctionnel", d:"Retentissement fonctionnel significatif rapporté."}
+  ],
+  anamnese: [
+    {t:"chronologie", d:"Début progressif des difficultés, avec majoration récente."},
+    {t:"facteurs", d:"Facteurs déclenchants et de maintien discutés en entretien."},
+    {t:"adhésion", d:"Demande de soins présente, motivation fluctuante selon le contexte."}
+  ],
+  antecedents: [
+    {t:"psychiatre", d:"Suivi psychiatrique déjà en place, à préciser (nom, contact)."},
+    {t:"aucun suivi", d:"Pas de suivi spécialisé régulier rapporté à ce stade."},
+    {t:"ATCD", d:"Antécédents personnels et familiaux à préciser."}
+  ],
+  mse_pres: [
+    {t:"calme", d:"calme, contact facile, collaboration bonne"},
+    {t:"tendu", d:"tension interne, vigilance accrue, contrôle important"},
+    {t:"agité", d:"agitation psychomotrice modérée, anxiété observable"}
+  ],
+  mse_disc: [
+    {t:"spontané", d:"discours spontané, cohérent, sans fuite des idées"},
+    {t:"pauvre", d:"discours pauvre, latence, réponses brèves"},
+    {t:"logorrhée", d:"logorrhée, accélération du débit, distractibilité"}
+  ],
+  mse_mood: [
+    {t:"anxieux", d:"humeur anxieuse avec ruminations"},
+    {t:"dépressif", d:"affects dépressifs avec anhédonie"},
+    {t:"labilité", d:"labilité émotionnelle et réactivité accrue"}
+  ],
+  mse_sleep: [
+    {t:"insomnie", d:"insomnie d’endormissement et réveils nocturnes"},
+    {t:"cauchemars", d:"cauchemars et sommeil non réparateur"},
+    {t:"appétit", d:"appétit variable avec perte de poids non objectivée"}
+  ],
+  plan: [
+    {t:"suivi rapproché", d:"poursuite d’un suivi rapproché avec réévaluation régulière"},
+    {t:"orientation", d:"orientation vers ressources adaptées (SSM, psychothérapie, HDJ)"},
+    {t:"psychoéducation", d:"psychoéducation, repérage des déclencheurs, stratégie de régulation"}
+  ],
+  work: [
+    {t:"incapacité", d:"à ce stade, l’état clinique n’est pas compatible avec une reprise d’activité professionnelle"},
+    {t:"rééval", d:"réévaluation clinique nécessaire avant toute reprise"}
+  ],
+  mail: {
+    envoi_rapport: {
+      subject:"Envoi de document",
+      body:"Bonjour,\n\nVous trouverez ci-joint le document demandé, comme convenu.\n\nBien à vous,\nDr …"
+    },
+    changement_rdv: {
+      subject:"Changement de rendez-vous",
+      body:"Bonjour,\n\nJe dois déplacer notre rendez-vous prévu le … à …\nJe vous propose plutôt le … à …\n\nBien à vous,\nDr …"
+    },
+    proposition_rdv: {
+      subject:"Proposition de rendez-vous",
+      body:"Bonjour,\n\nJe vous propose un rendez-vous le … à …\nMerci de me confirmer si cela vous convient.\n\nBien à vous,\nDr …"
+    },
+    accuse_reception: {
+      subject:"Accusé de réception",
+      body:"Bonjour,\n\nVotre message a bien été reçu.\nJe reviendrai vers vous dès que possible.\n\nBien à vous,\nDr …"
+    }
+  }
+};
+
+/* ------------------------------
+   Default medication library (expandable)
+   Each med: category, route options, frequency options
+------------------------------ */
+const MED_LIB = [
+  // Sommeil
+  {id:"trazodone", name:"Trazodone", cat:"Sommeil", defaultDose:"100 mg", routes:["per os"], freq:["le soir","au coucher","si nécessaire"], notes:["tolérance", "effet le lendemain"]},
+  {id:"dominal", name:"Dominal", cat:"Sommeil", defaultDose:"80 mg", routes:["per os"], freq:["le soir","au coucher","si nécessaire"], notes:["sédation", "prudence"]},
+  {id:"atarax", name:"Atarax", cat:"Anxiété", defaultDose:"25 mg", routes:["per os"], freq:["si nécessaire","1–3×/j","le soir"], notes:["sédation", "anticholinergique"]},
+  {id:"nozinan", name:"Nozinan", cat:"Agitation", defaultDose:"25–50 mg", routes:["per os"], freq:["le soir","si nécessaire"], notes:["hypotension", "sédation"]},
+
+  // Sevrage
+  {id:"valium", name:"Valium (diazépam)", cat:"Sevrage", defaultDose:"", routes:["per os"], freq:["8h","12h","18h","22h","si nécessaire"], notes:["CI respiratoire", "prudence"]},
+  {id:"temesta", name:"Temesta (lorazépam)", cat:"Sevrage", defaultDose:"", routes:["per os"], freq:["8h","12h","18h","22h","si nécessaire"], notes:["comprimés 2,5 mg sécables (1,25 mg)"]},
+
+  // AD / thymie
+  {id:"escitalopram", name:"Escitalopram", cat:"Antidépresseur", defaultDose:"10–20 mg", routes:["per os"], freq:["le matin"], notes:["délai d’action", "nausées"]},
+  {id:"sertraline", name:"Sertraline", cat:"Antidépresseur", defaultDose:"50–100 mg", routes:["per os"], freq:["le matin"], notes:["GI", "activation"]},
+  {id:"fluoxetine", name:"Fluoxetine", cat:"Antidépresseur", defaultDose:"20 mg", routes:["per os"], freq:["le matin"], notes:["demi-vie longue"]},
+
+  // Antipsy
+  {id:"olanzapine", name:"Olanzapine", cat:"Antipsychotique", defaultDose:"5–10 mg", routes:["per os"], freq:["le soir","si nécessaire"], notes:["prise de poids", "sédation"]},
+  {id:"aripiprazole", name:"Aripiprazole", cat:"Antipsychotique", defaultDose:"5–10 mg", routes:["per os"], freq:["le matin"], notes:["akathisie"]},
+
+  // Addictologie
+  {id:"acamprosate", name:"Acamprosate", cat:"Addictologie", defaultDose:"", routes:["per os"], freq:["3×/j"], notes:["adhésion"]},
+  {id:"baclofene", name:"Baclofène", cat:"Addictologie", defaultDose:"", routes:["per os"], freq:["2–3×/j"], notes:["somnolence"]},
+];
+
+/* ------------------------------
+   Built-in templates + user templates
+   (User can create new template by picking blocks order)
+------------------------------ */
+const BUILTIN_TEMPLATES = [
   {
-    id:"mdd",
-    name:"Épisode dépressif majeur (MDD)",
-    core:"Humeur dépressive et/ou perte d’intérêt, avec retentissement, sur une période suffisante, non mieux expliqué par autre cause.",
-    checklist:[
-      {id:"mdd1", label:"Humeur dépressive", phrase:"humeur dépressive quasi quotidienne"},
-      {id:"mdd2", label:"Perte d’intérêt/plaisir", phrase:"anhédonie / perte d’intérêt"},
-      {id:"mdd3", label:"Sommeil", phrase:"troubles du sommeil"},
-      {id:"mdd4", label:"Appétit/poids", phrase:"modification de l’appétit / du poids"},
-      {id:"mdd5", label:"Énergie", phrase:"fatigue / baisse d’énergie"},
-      {id:"mdd6", label:"Cognition", phrase:"difficultés d’attention / concentration"},
-      {id:"mdd7", label:"Culpabilité/dévalorisation", phrase:"auto-dévalorisation / culpabilité"},
-      {id:"mdd8", label:"Psychomotricité", phrase:"ralentissement ou agitation psychomotrice"},
-      {id:"mdd9", label:"Idées noires", phrase:"idées noires / idéation suicidaire (à cadrer)"}
-    ],
-    make:(sel, free)=> clean(paraJoin([
-      "Éléments compatibles avec un épisode dépressif, avec",
-      sentenceJoin(sel.map(x=>x.phrase)),
-      free?("("+free+")"):""
-    ]))
+    id:"consult_ambu",
+    name:"Note consultation ambulatoire",
+    blocks:["context","anamnese","antecedents","home_meds","mse","substances","plan"]
   },
   {
-    id:"gad",
-    name:"Trouble anxieux généralisé (GAD)",
-    core:"Anxiété excessive et difficile à contrôler, avec symptômes physiques/cognitifs, et retentissement.",
-    checklist:[
-      {id:"gad1", label:"Inquiétudes envahissantes", phrase:"inquiétudes envahissantes et difficiles à contrôler"},
-      {id:"gad2", label:"Tension", phrase:"tension interne / irritabilité"},
-      {id:"gad3", label:"Sommeil", phrase:"troubles du sommeil"},
-      {id:"gad4", label:"Fatigabilité", phrase:"fatigabilité"},
-      {id:"gad5", label:"Concentration", phrase:"difficultés de concentration"},
-      {id:"gad6", label:"Somatique", phrase:"manifestations somatiques (tensions, douleurs, etc.)"}
-    ],
-    make:(sel, free)=> clean("Anxiété au premier plan, avec " + sentenceJoin(sel.map(x=>x.phrase)) + (free?(". "+free):"."))
+    id:"suivi_psy",
+    name:"Rapport suivi psychiatrique",
+    blocks:["context","anamnese","antecedents","home_meds","mse","substances","plan","work"]
   },
   {
-    id:"panic",
-    name:"Trouble panique",
-    core:"Crises d’angoisse récurrentes, avec appréhension/évitemment secondaire.",
-    checklist:[
-      {id:"p1", label:"Crises récurrentes", phrase:"crises d’angoisse paroxystiques récurrentes"},
-      {id:"p2", label:"Anxiété anticipatoire", phrase:"anxiété anticipatoire"},
-      {id:"p3", label:"Évitements", phrase:"évitements et limitation des activités"},
-    ],
-    make:(sel, free)=> clean("Tableau de type panique, avec " + sentenceJoin(sel.map(x=>x.phrase)) + (free?(". "+free):"."))
+    id:"adm_s1_u74",
+    name:"Admission S1 sevrage alcool (U74)",
+    blocks:["context","anamnese","alco_detail","withdrawal","antecedents","home_meds","mse","substances","taper","plan"]
   },
   {
-    id:"ptsd",
-    name:"Trouble de stress post-traumatique (PTSD)",
-    core:"Après exposition à événement traumatique, symptômes intrusifs, évitement, altérations cognitivo-émotionnelles, hyperactivation, retentissement.",
-    checklist:[
-      {id:"t1", label:"Intrusions/cauchemars", phrase:"réexpériences intrusives (images/cauchemars)"},
-      {id:"t2", label:"Évitement", phrase:"évitement des déclencheurs"},
-      {id:"t3", label:"Hypervigilance", phrase:"hypervigilance / sursaut"},
-      {id:"t4", label:"Humeur/cognitions", phrase:"altérations négatives des cognitions et affects"},
-      {id:"t5", label:"Sommeil", phrase:"troubles du sommeil"},
-    ],
-    make:(sel, free)=> clean("Éléments post-traumatiques, avec " + sentenceJoin(sel.map(x=>x.phrase)) + (free?(". "+free):"."))
+    id:"out_s1",
+    name:"Sortie S1",
+    blocks:["summary","mse","substances","taper","plan"]
   },
   {
-    id:"bpd",
-    name:"Traits / trouble de personnalité borderline (BPD)",
-    core:"Instabilité affective et relationnelle, impulsivité, image de soi fluctuante, retentissement, avec patterns répétitifs.",
-    checklist:[
-      {id:"b1", label:"Dysrégulation émotionnelle", phrase:"dysrégulation émotionnelle avec affects intenses"},
-      {id:"b2", label:"Impulsivité", phrase:"impulsivité (comportements/consommations)"},
-      {id:"b3", label:"Relations instables", phrase:"relations interpersonnelles instables"},
-      {id:"b4", label:"Peur de l’abandon", phrase:"peur de l’abandon / dépendance relationnelle"},
-      {id:"b5", label:"Identité fluctuante", phrase:"image de soi fluctuante"},
-      {id:"b6", label:"Idées noires/auto-agirs", phrase:"idées noires et/ou auto-agirs (à cadrer)"},
-    ],
-    make:(sel, free)=> clean("Fonctionnement évoquant des traits borderline, avec " + sentenceJoin(sel.map(x=>x.phrase)) + (free?(". "+free):"."))
+    id:"adm_s2",
+    name:"Admission S2",
+    blocks:["summary","mse","substances","plan"]
   },
   {
-    id:"aud",
-    name:"Trouble lié à l’usage d’alcool (AUD)",
-    core:"Usage problématique avec perte de contrôle, retentissement, poursuite malgré conséquences, etc. (à objectiver).",
-    checklist:[
-      {id:"a1", label:"Perte de contrôle", phrase:"difficulté à contrôler l’usage"},
-      {id:"a2", label:"Retentissement", phrase:"retentissement social/pro/psy"},
-      {id:"a3", label:"Poursuite malgré conséquences", phrase:"poursuite malgré conséquences"},
-      {id:"a4", label:"Sevrage/tolérance", phrase:"tolérance et/ou symptômes de sevrage (à préciser)"},
-    ],
-    make:(sel, free)=> clean("Usage d’alcool problématique, avec " + sentenceJoin(sel.map(x=>x.phrase)) + (free?(". "+free):"."))
+    id:"out_s2",
+    name:"Sortie S2",
+    blocks:["summary","mse","substances","taper","plan"]
+  },
+  {
+    id:"mail",
+    name:"Email (modèles)",
+    blocks:["summary"]
   }
 ];
 
-/* ---------------------------
-   App templates (sobre)
---------------------------- */
-const TEMPLATES = {
-  clinical:[
-    {id:"consult", name:"Note de consultation", build: buildConsult},
-    {id:"follow_work", name:"Attestation suivi / travail", build: buildWorkAttest},
-    {id:"evol", name:"Note d’évolution", build: buildEvol}
-  ],
-  email:[
-    {id:"em_attach", name:"Envoi pièce jointe", subject:"Transmission du document", fields:["toName","attachment","context"], build: buildEmailAttach},
-    {id:"em_resched", name:"Changement rendez-vous", subject:"Modification de rendez-vous", fields:["toName","oldDate","newDate","reason"], build: buildEmailResched},
-    {id:"em_ack", name:"Bien reçu / réponse plus tard", subject:"Bien reçu", fields:["toName","topic"], build: buildEmailAck}
-  ]
-};
-
-/* ---------------------------
-   State
---------------------------- */
-let state = {
+const DEFAULT_STATE = {
   theme:"dark",
-  mode:"clinical",            // clinical | email
-  tplId:"consult",
-  ui:{ identite:"", signature:"", civilite:"N" },
-  data:{},                    // per tpl
-  dsm:{ active:null, sel:{}, free:{} }
+  focus:false,
+
+  ui:{
+    patient:"Mme / M. …",
+    signature:"Dr …",
+    connectors: DEFAULT_CONNECTORS
+  },
+
+  tplId:"consult_ambu",
+
+  // template registry
+  templatesUser: [],
+
+  // per template data
+  data: {},
+
+  // meds selected per template: [{medId,dose,route,freq[],note}]
+  medsByTpl: {},
+
+  // perceptions / risk
+  mse:{
+    delusions:null,
+    hallucinations:null,
+    risk:{suicidal:null, hetero:null}
+  },
+
+  // taper schedule
+  taper:{
+    molecule:"Valium",         // Valium | Temesta
+    startTotal:40,             // mg/j
+    startDateISO: isoToday(),
+    schedule: []               // rows: {dateISO, d8,d12,d18,d22,total}
+  },
+
+  output:{
+    locked:false,
+    big:false
+  }
 };
 
-function load(){
-  const raw=localStorage.getItem(LS);
-  if(raw){ try{ state={...state, ...JSON.parse(raw)} }catch(e){} }
-  document.body.setAttribute("data-theme", state.theme);
-  ensureTpl();
-  renderAll();
-}
-function save(){ localStorage.setItem(LS, JSON.stringify(state)); }
-function ensureTpl(){
-  const list = state.mode==="clinical" ? TEMPLATES.clinical : TEMPLATES.email;
-  if(!list.some(t=>t.id===state.tplId)) state.tplId=list[0].id;
-  state.data[state.tplId] = state.data[state.tplId] || {};
-}
-function v(){ ensureTpl(); return state.data[state.tplId]; }
-function setV(k,val){ const vv=v(); vv[k]=val; save(); }
+let state = structuredClone(DEFAULT_STATE);
 
-/* ---------------------------
-   Sidebar render (desktop + drawer)
---------------------------- */
+/* ------------------------------
+   Persistence
+------------------------------ */
+function deepMerge(base, extra){
+  if(extra===null || extra===undefined) return base;
+  if(typeof base !== "object" || typeof extra !== "object") return extra;
+  if(Array.isArray(base)) return Array.isArray(extra) ? extra : base;
+  const out = {...base};
+  for(const k of Object.keys(extra)){
+    out[k] = deepMerge(base[k], extra[k]);
+  }
+  return out;
+}
+function save(){
+  localStorage.setItem(LS, JSON.stringify(state));
+}
+function load(){
+  const raw = localStorage.getItem(LS);
+  if(raw){
+    try{
+      state = deepMerge(structuredClone(DEFAULT_STATE), JSON.parse(raw));
+    }catch(e){}
+  }
+  document.body.setAttribute("data-theme", state.theme);
+  ensureData();
+}
+
+/* ------------------------------
+   Templates access
+------------------------------ */
+function allTemplates(){
+  const u = (state.templatesUser||[]).map(t=>({...t, user:true}));
+  const b = BUILTIN_TEMPLATES.map(t=>({...t, user:false}));
+  return [...b, ...u];
+}
+function getTpl(id){
+  return allTemplates().find(t=>t.id===id) || BUILTIN_TEMPLATES[0];
+}
+function ensureData(){
+  for(const t of allTemplates()){
+    if(!state.data[t.id]) state.data[t.id] = {};
+    if(!state.medsByTpl[t.id]) state.medsByTpl[t.id] = [];
+  }
+}
+
+/* ------------------------------
+   Sidebar with tabs
+------------------------------ */
+const SIDETABS = [
+  {id:"tab_identity", label:"Identité"},
+  {id:"tab_template", label:"Modèle"},
+  {id:"tab_suggest", label:"Suggestions"},
+  {id:"tab_settings", label:"Réglages"}
+];
+let sideTab = "tab_template";
+
 function sidebarHTML(){
+  const tpl = getTpl(state.tplId);
   return `
     <div class="sideHead">
-      <b>Paramètres</b>
-      <span class="k">${todayFR()}</span>
+      <b>${esc(tpl.name)}</b>
+      <span class="mini">${todayFR()}</span>
     </div>
-    <div class="sideBody">
-      <label>Mode</label>
-      <select id="modeSel">
-        <option value="clinical">Clinique</option>
-        <option value="email">Email</option>
-      </select>
 
-      <div class="section">
-        <div class="sectionHead"><b>Modèles</b><span class="small" id="tplCount"></span></div>
-        <input id="tplSearch" placeholder="rechercher…" />
-        <div style="height:8px"></div>
-        <div id="tplList"></div>
-      </div>
-
-      <div class="section">
-        <div class="sectionHead"><b>Identité</b><span class="small">global</span></div>
-        <label>Patient (Mme/M. …)</label>
-        <input id="identite" placeholder="Mme X / M. Y / Initiales" />
-        <label>Pronoms</label>
-        <select id="civilite">
-          <option value="F">F (elle)</option>
-          <option value="M">M (il)</option>
-          <option value="N">N (neutre)</option>
-        </select>
-        <label>Signature email</label>
-        <input id="signature" placeholder="Dr … / Service …" />
-      </div>
-
-      <div class="section">
-        <div class="sectionHead"><b>DSM</b><span class="small">surbrillance</span></div>
-        <button class="btn" id="openDSM">Ouvrir la bibliothèque DSM</button>
-        <small class="small">Je ne peux pas intégrer le texte exact DSM-5, mais j’intègre une version clinique paraphrasée + ton moteur.</small>
-      </div>
+    <div class="tabs" role="tablist">
+      ${SIDETABS.map(t=>`
+        <div class="tab ${sideTab===t.id?"active":""}" data-tab="${t.id}">${t.label}</div>
+      `).join("")}
     </div>
+
+    <div class="sideBody" id="sideBody"></div>
   `;
 }
-function mountSidebar(where){
-  where.innerHTML = sidebarHTML();
 
-  // wire
-  where.querySelector("#modeSel").value = state.mode;
-  where.querySelector("#modeSel").onchange = (e)=>{
-    state.mode=e.target.value;
-    state.tplId = (state.mode==="clinical" ? TEMPLATES.clinical[0].id : TEMPLATES.email[0].id);
+function renderSidebarBody(container){
+  const body = container.querySelector("#sideBody");
+  if(!body) return;
+
+  const d = state.data[state.tplId] || {};
+  const tpl = getTpl(state.tplId);
+
+  if(sideTab==="tab_identity"){
+    body.innerHTML = `
+      <label>Patient</label>
+      <input id="sb_patient" value="${esc(state.ui.patient)}" placeholder="Mme X / M. Y"/>
+      <label>Signature</label>
+      <input id="sb_sig" value="${esc(state.ui.signature)}" placeholder="Dr …"/>
+      <div class="sep"></div>
+      <div class="mini">Astuce : “Mme / M.” est géré dans le champ patient, pour rester simple et rapide.</div>
+    `;
+    body.querySelector("#sb_patient").oninput = (e)=>{ state.ui.patient=e.target.value; save(); regen(); };
+    body.querySelector("#sb_sig").oninput = (e)=>{ state.ui.signature=e.target.value; save(); regen(); };
+    return;
+  }
+
+  if(sideTab==="tab_template"){
+    const list = allTemplates();
+    body.innerHTML = `
+      <label>Modèles</label>
+      <input id="sb_search" placeholder="Recherche" />
+      <div class="sep"></div>
+      <div id="tplList" class="chips" style="gap:8px"></div>
+
+      <div class="sep"></div>
+      <div class="chips">
+        <div class="chip" id="btnNewTpl" title="Créer un nouveau modèle">Nouveau</div>
+        <div class="chip" id="btnEditTpl" title="Éditer le modèle actuel (si modèle utilisateur)">Éditer</div>
+      </div>
+
+      <div class="sep"></div>
+      <div class="mini">Focus = masque ce panneau et les suggestions quand tu veux juste “produire”.</div>
+    `;
+
+    const listWrap = body.querySelector("#tplList");
+    const search = body.querySelector("#sb_search");
+
+    const renderList = ()=>{
+      const q = (search.value||"").toLowerCase().trim();
+      listWrap.innerHTML = "";
+      list
+        .filter(t=>!q || t.name.toLowerCase().includes(q))
+        .forEach(t=>{
+          const chip = document.createElement("div");
+          chip.className = "chip"+(t.id===state.tplId?" selected":"");
+          chip.textContent = t.name;
+          chip.title = t.user ? "Modèle utilisateur" : "Modèle intégré";
+          chip.onclick = ()=>{
+            state.tplId = t.id;
+            save();
+            renderAll();
+          };
+          listWrap.appendChild(chip);
+        });
+    };
+
+    renderList();
+    search.oninput = renderList;
+
+    body.querySelector("#btnNewTpl").onclick = ()=> openTemplateBuilder();
+    body.querySelector("#btnEditTpl").onclick = ()=>{
+      const cur = allTemplates().find(t=>t.id===state.tplId);
+      if(cur && cur.user) openTemplateBuilder(cur.id);
+      else openInfo("Modèle intégré", "Ce modèle est intégré. Duplique-le via “Nouveau”, puis édite la copie.");
+    };
+
+    return;
+  }
+
+  if(sideTab==="tab_suggest"){
+    // Suggestions targeted to current template + learning feel
+    body.innerHTML = `
+      <label>Motif</label>
+      <div id="s_motif" class="suggestGrid"></div>
+
+      <label>Contexte</label>
+      <div id="s_contexte" class="suggestGrid"></div>
+
+      <label>Anamnèse</label>
+      <div id="s_anam" class="suggestGrid"></div>
+
+      <label>Examen mental (rapide)</label>
+      <div class="section">
+        <div class="sectionHead">
+          <div class="left">
+            <svg class="ico muted" viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0 0 6v3a3 3 0 0 0 3 3"/><path d="M15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 0 6v3a3 3 0 0 1-3 3"/><path d="M9 7h6"/><path d="M9 12h6"/></svg>
+            <b>Cliquer = remplir</b>
+          </div>
+          <div class="toggle" data-collapse="mse" title="Afficher/Masquer">
+            <svg class="ico muted" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="sectionBody">
+          <label>Présentation</label>
+          <div id="s_mse_pres" class="chips"></div>
+          <label>Discours</label>
+          <div id="s_mse_disc" class="chips"></div>
+          <label>Humeur</label>
+          <div id="s_mse_mood" class="chips"></div>
+          <label>Sommeil</label>
+          <div id="s_mse_sleep" class="chips"></div>
+
+          <div class="sep"></div>
+          <div class="chips">
+            <div class="chip" id="s_openPercep" title="Sous-choix perceptions">Perceptions</div>
+            <div class="chip" id="s_openRisk" title="Sous-choix sécurité">Sécurité</div>
+          </div>
+        </div>
+      </div>
+
+      <label>Plan</label>
+      <div id="s_plan" class="suggestGrid"></div>
+
+      <label>Travail</label>
+      <div id="s_work" class="suggestGrid"></div>
+
+      <div class="sep"></div>
+      <div class="mini">But pédagogique : tu vois les formulations correctes, tu les manipules, puis tu les reproduis sans l’outil.</div>
+    `;
+
+    const collapse = body.querySelector(".toggle");
+    collapse.onclick = ()=> collapse.closest(".section").classList.toggle("collapsed");
+
+    // helpers to render suggestions
+    const mkSugg = (wrap, list, onPick)=>{
+      wrap.innerHTML = "";
+      list.forEach(s=>{
+        const div = document.createElement("div");
+        div.className = "sugg";
+        div.innerHTML = `<b>${esc(s.t)}</b><small>${esc(s.d)}</small>`;
+        div.onclick = ()=> onPick(s.d);
+        wrap.appendChild(div);
+      });
+    };
+
+    mkSugg(body.querySelector("#s_motif"), SUGG.motif, (txt)=>{ d.motif = txt; save(); regen(); });
+    mkSugg(body.querySelector("#s_contexte"), SUGG.contexte, (txt)=>{ d.contexte = txt; save(); regen(); });
+    mkSugg(body.querySelector("#s_anam"), SUGG.anamnese, (txt)=>{ d.anamnese = mergeText(d.anamnese, txt); save(); regen(); });
+
+    // MSE chips -> set fields quickly
+    renderChipList(body.querySelector("#s_mse_pres"), SUGG.mse_pres, (txt)=>{ d.mse_pres = txt; save(); regen(); });
+    renderChipList(body.querySelector("#s_mse_disc"), SUGG.mse_disc, (txt)=>{ d.mse_disc = txt; save(); regen(); });
+    renderChipList(body.querySelector("#s_mse_mood"), SUGG.mse_mood, (txt)=>{ d.mse_mood = txt; save(); regen(); });
+    renderChipList(body.querySelector("#s_mse_sleep"), SUGG.mse_sleep, (txt)=>{ d.mse_sleep = txt; save(); regen(); });
+
+    mkSugg(body.querySelector("#s_plan"), SUGG.plan, (txt)=>{ d.plan = mergeText(d.plan, txt); save(); regen(); });
+    mkSugg(body.querySelector("#s_work"), SUGG.work, (txt)=>{ d.work = mergeText(d.work, txt); save(); regen(); });
+
+    body.querySelector("#s_openPercep").onclick = ()=> openPerceptionModal();
+    body.querySelector("#s_openRisk").onclick = ()=> openRiskModal();
+    return;
+  }
+
+  if(sideTab==="tab_settings"){
+    body.innerHTML = `
+      <label>Connecteurs (séparés par “;”)</label>
+      <input id="sb_conn" value="${esc((state.ui.connectors||[]).join("; "))}" />
+      <div class="sep"></div>
+      <div class="chips">
+        <div class="chip" id="sb_clearConn" title="Réinitialiser">Reset connecteurs</div>
+      </div>
+      <div class="sep"></div>
+      <div class="mini">Les connecteurs évitent les répétitions quand plusieurs phrases se ressemblent.</div>
+    `;
+    const inp = body.querySelector("#sb_conn");
+    inp.oninput = ()=>{
+      const parts = String(inp.value||"").split(";").map(x=>x.trim()).filter(Boolean);
+      state.ui.connectors = parts.length ? parts : structuredClone(DEFAULT_CONNECTORS);
+      save(); regen();
+    };
+    body.querySelector("#sb_clearConn").onclick = ()=>{
+      state.ui.connectors = structuredClone(DEFAULT_CONNECTORS);
+      save(); renderAll();
+    };
+    return;
+  }
+}
+
+function renderChipList(wrap, list, onPick){
+  wrap.innerHTML = "";
+  list.forEach(s=>{
+    const c = document.createElement("div");
+    c.className = "chip small";
+    c.textContent = s.t;
+    c.title = s.d;
+    c.onclick = ()=> onPick(s.d);
+    wrap.appendChild(c);
+  });
+}
+
+function mergeText(prev, add){
+  prev = cleanSpaces(prev||"");
+  add = cleanSpaces(add||"");
+  if(!add) return prev;
+  if(!prev) return add;
+  // avoid duplicating exact same chunk
+  const lowPrev = prev.toLowerCase();
+  if(lowPrev.includes(add.toLowerCase())) return prev;
+  return prev + " " + add;
+}
+
+/* ------------------------------
+   Main template select (top)
+------------------------------ */
+function mountTplSelect(){
+  const sel = $("tplSelect");
+  sel.innerHTML = "";
+  allTemplates().forEach(t=>{
+    const o = document.createElement("option");
+    o.value = t.id;
+    o.textContent = t.name;
+    sel.appendChild(o);
+  });
+  sel.value = state.tplId;
+  sel.onchange = (e)=>{ state.tplId = e.target.value; save(); renderAll(); };
+}
+
+/* ------------------------------
+   Required chip
+------------------------------ */
+function requiredStatus(){
+  const tpl = getTpl(state.tplId);
+  const blocks = tpl.blocks || [];
+  const d = state.data[state.tplId] || {};
+  const missing = [];
+
+  const need = (bid)=> (BLOCKS.find(b=>b.id===bid)?.required);
+
+  for(const bid of blocks){
+    if(!need(bid)) continue;
+    if(bid==="context"){
+      if(!cleanSpaces(d.motif) && !cleanSpaces(d.contexte)) missing.push("Motif");
+    }else if(bid==="anamnese"){
+      if(!cleanSpaces(d.anamnese) && state.tplId!=="adm_s1_u74") missing.push("Anamnèse");
+      // for sevrage admission, anamnese can be partly filled by alco_detail; still want some
+      if(state.tplId==="adm_s1_u74" && !cleanSpaces(d.anamnese) && !cleanSpaces(d.alco_hist)) missing.push("Anamnèse");
+    }else if(bid==="mse"){
+      // allow empty but we keep as required “slot”: not counted missing
+    }else if(bid==="plan"){
+      if(!cleanSpaces(d.plan) && !cleanSpaces(d.suivi)) missing.push("Plan");
+    }
+  }
+  return { ok: missing.length===0, missing };
+}
+
+/* ------------------------------
+   Render main content blocks
+------------------------------ */
+function renderContent(){
+  const tpl = getTpl(state.tplId);
+  $("docTitle").textContent = tpl.name;
+  const d = state.data[state.tplId] || {};
+  const focus = state.focus;
+
+  const mkSection = (id, title, iconSvg, inner, defaultCollapsed=false)=>{
+    const collapsed = (focus && defaultCollapsed) ? "collapsed" : "";
+    return `
+      <div class="section ${collapsed}" data-sec="${id}">
+        <div class="sectionHead">
+          <div class="left">
+            ${iconSvg}
+            <b>${title}</b>
+          </div>
+          <div class="toggle" title="Afficher/Masquer">
+            <svg class="ico muted" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="sectionBody">${inner}</div>
+      </div>
+    `;
+  };
+
+  const ICON = {
+    folder:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h7"/></svg>`,
+    text:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 5h16"/><path d="M8 9h12"/><path d="M8 13h12"/><path d="M8 17h10"/></svg>`,
+    brain:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0 0 6v3a3 3 0 0 0 3 3"/><path d="M15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 0 6v3a3 3 0 0 1-3 3"/><path d="M9 7h6"/><path d="M9 12h6"/></svg>`,
+    pills:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M7 7h10"/><path d="M6 7v12a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7"/></svg>`,
+    glass:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M3 2h18"/><path d="M7 2v6a5 5 0 0 0 10 0V2"/><path d="M12 14v8"/><path d="M8 22h8"/></svg>`,
+    chart:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-6"/><path d="M12 16v-9"/><path d="M16 16v-3"/></svg>`,
+    plan:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M3 12h6l3 8 4-16 3 8h2"/></svg>`,
+    work:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M3 7h18v13H3z"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>`,
+    shield:`<svg class="ico muted" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z"/></svg>`
+  };
+
+  const blocks = tpl.blocks || [];
+  let html = "";
+
+  for(const bid of blocks){
+    if(bid==="context"){
+      html += mkSection("context", "Motif / contexte", ICON.folder, `
+        <label>Motif</label>
+        <input id="f_motif" value="${esc(d.motif)}" placeholder="cliquer sur une suggestion à gauche, ou écrire court"/>
+        <label>Contexte</label>
+        <input id="f_contexte" value="${esc(d.contexte)}" placeholder="court et clair"/>
+      `, false);
+    }
+
+    if(bid==="anamnese"){
+      html += mkSection("anamnese", "Anamnèse", ICON.text, `
+        <div class="mini">Objectif : cliquer, compléter, garder la narration fluide.</div>
+        <label>Texte</label>
+        <textarea id="f_anamnese" class="mono" placeholder="Tu peux aussi laisser vide et utiliser uniquement les sous-sections ci-dessous.">${esc(d.anamnese)}</textarea>
+      `, false);
+    }
+
+    if(bid==="alco_detail"){
+      html += mkSection("alco_detail", "Alcool (détaillé)", ICON.glass, `
+        <div class="row">
+          <div class="col">
+            <label>Type</label>
+            <input id="a_type" value="${esc(d.alco_type)}" placeholder="bière, vin, spiritueux, mix…"/>
+          </div>
+          <div class="col">
+            <label>Quantités</label>
+            <input id="a_qte" value="${esc(d.alco_qte)}" placeholder="ex. 6 bières/j, 1 bouteille/j…"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Moments</label>
+            <input id="a_mom" value="${esc(d.alco_mom)}" placeholder="matin, midi, soir, nuit, réveils…"/>
+          </div>
+          <div class="col">
+            <label>Depuis quand / trajectoire</label>
+            <input id="a_hist" value="${esc(d.alco_hist)}" placeholder="ancienneté, escalade, rechutes…"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Fonction</label>
+            <input id="a_func" value="${esc(d.alco_func)}" placeholder="anxiolyse, sommeil, social, affects…"/>
+          </div>
+          <div class="col">
+            <label>Familial</label>
+            <input id="a_fam" value="${esc(d.alco_fam)}" placeholder="ATCD familiaux (oui/non/détails)"/>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="mini">Symptômes de sevrage : tu peux aussi utiliser la section “Sevrage”.</div>
+      `, false);
+    }
+
+    if(bid==="withdrawal"){
+      html += mkSection("withdrawal", "Sevrage (symptômes / complications)", ICON.shield, `
+        <label>Sélection rapide</label>
+        <div id="wdChips" class="chips"></div>
+        <label>Précisions</label>
+        <input id="wd_free" value="${esc(d.wd_free)}" placeholder="convulsions, DT, hallucinations, etc."/>
+      `, true);
+    }
+
+    if(bid==="antecedents"){
+      html += mkSection("antecedents", "Antécédents / suivi", ICON.folder, `
+        <div class="row">
+          <div class="col">
+            <label>Suivi</label>
+            <input id="ant_follow" value="${esc(d.ant_follow)}" placeholder="psychiatre, psychologue, SSM…"/>
+          </div>
+          <div class="col">
+            <label>Contact (optionnel)</label>
+            <input id="ant_contact" value="${esc(d.ant_contact)}" placeholder="nom / téléphone / email"/>
+          </div>
+        </div>
+        <label>ATCD personnels / familiaux</label>
+        <input id="ant_atcd" value="${esc(d.ant_atcd)}" placeholder="psy, somatique, addictions…"/>
+      `, true);
+    }
+
+    if(bid==="home_meds"){
+      html += mkSection("home_meds", "Traitement domicile", ICON.pills, `
+        <label>Traitement habituel</label>
+        <textarea id="home_meds" class="mono" placeholder="Clique sur “Médicaments” pour sélectionner et générer automatiquement.">${esc(d.home_meds)}</textarea>
+        <div class="mini">Astuce : tu peux laisser vide et tout faire via la modale “Médicaments”.</div>
+      `, true);
+    }
+
+    if(bid==="mse"){
+      html += mkSection("mse", "Examen mental", ICON.brain, `
+        <div class="row">
+          <div class="col">
+            <label>Présentation / psychomotricité</label>
+            <input id="mse_pres" value="${esc(d.mse_pres)}" placeholder="calme, agitation, contact…"/>
+          </div>
+          <div class="col">
+            <label>Discours</label>
+            <input id="mse_disc" value="${esc(d.mse_disc)}" placeholder="spontané, pauvre, logorrhée…"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Pensée</label>
+            <input id="mse_thought" value="${esc(d.mse_thought)}" placeholder="ruminations, accélération, cohérence…"/>
+          </div>
+          <div class="col">
+            <label>Humeur / affects</label>
+            <input id="mse_mood" value="${esc(d.mse_mood)}" placeholder="anxieuse, dépressive, labile…"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Cognition</label>
+            <input id="mse_cog" value="${esc(d.mse_cog)}" placeholder="attention, concentration…"/>
+          </div>
+          <div class="col">
+            <label>Insight / jugement</label>
+            <input id="mse_insight" value="${esc(d.mse_insight)}" placeholder="préservé, partiel, absent…"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Sommeil / appétit</label>
+            <input id="mse_sleep" value="${esc(d.mse_sleep)}" placeholder="insomnie, réveils, appétit…"/>
+          </div>
+          <div class="col">
+            <label>Note libre</label>
+            <input id="mse_free" value="${esc(d.mse_free)}" placeholder="nuance courte…"/>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="chips">
+          <div class="chip" id="openPercep">Perceptions</div>
+          <div class="chip" id="openRisk">Sécurité</div>
+        </div>
+      `, false);
+    }
+
+    if(bid==="substances"){
+      html += mkSection("substances", "Consommations", ICON.glass, `
+        <label>Sélection</label>
+        <div id="subChips" class="chips"></div>
+        <label>Complément</label>
+        <input id="sub_free" value="${esc(d.sub_free)}" placeholder="diminution récente, ressources…"/>
+      `, true);
+    }
+
+    if(bid==="taper"){
+      html += mkSection("taper", "Schéma sevrage", ICON.chart, `
+        <div class="row">
+          <div class="col">
+            <label>Molécule</label>
+            <select id="tp_mol">
+              <option value="Valium">Valium</option>
+              <option value="Temesta">Temesta</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Dose départ (mg/j)</label>
+            <input id="tp_start" type="number" step="0.5" min="0" />
+          </div>
+          <div class="col">
+            <label>Date J1</label>
+            <input id="tp_date" type="date" />
+          </div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="chips">
+          <div class="chip" id="tp_gen">Générer</div>
+          <div class="chip" id="tp_open">Ouvrir tableau</div>
+          <div class="chip" id="tp_add">+ Jour</div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="mini" id="tp_hint"></div>
+
+        <div class="section" style="margin-top:10px">
+          <div class="sectionHead">
+            <div class="left">
+              <svg class="ico muted" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/></svg>
+              <b>Aperçu</b>
+            </div>
+            <span class="mini" id="tp_len">—</span>
+          </div>
+          <div class="sectionBody" id="tp_preview"></div>
+        </div>
+      `, false);
+    }
+
+    if(bid==="plan"){
+      html += mkSection("plan", "Plan / orientations", ICON.plan, `
+        <label>Plan</label>
+        <textarea id="f_plan" class="mono" placeholder="Clique des suggestions à gauche, puis complète si besoin.">${esc(d.plan)}</textarea>
+        <label>Suivi / rendez-vous</label>
+        <input id="f_suivi" value="${esc(d.suivi)}" placeholder="ex. RDV le … à …, orientation …"/>
+      `, false);
+    }
+
+    if(bid==="work"){
+      html += mkSection("work", "Travail", ICON.work, `
+        <label>Texte</label>
+        <textarea id="f_work" class="mono" placeholder="incapacité, réévaluation, retentissement…">${esc(d.work)}</textarea>
+      `, true);
+    }
+
+    if(bid==="summary"){
+      html += mkSection("summary", "Synthèse", ICON.text, `
+        <label>Texte</label>
+        <textarea id="f_summary" class="mono" placeholder="bilan, évolution, semaine intermédiaire, etc.">${esc(d.summary)}</textarea>
+      `, false);
+    }
+  }
+
+  $("content").innerHTML = html;
+
+  // collapse handlers
+  $("content").querySelectorAll(".toggle").forEach(t=>{
+    t.onclick = ()=> t.closest(".section").classList.toggle("collapsed");
+  });
+
+  // bind inputs
+  bindIf("f_motif", v=>d.motif=v);
+  bindIf("f_contexte", v=>d.contexte=v);
+  bindIf("f_anamnese", v=>d.anamnese=v);
+
+  bindIf("a_type", v=>d.alco_type=v);
+  bindIf("a_qte", v=>d.alco_qte=v);
+  bindIf("a_mom", v=>d.alco_mom=v);
+  bindIf("a_hist", v=>d.alco_hist=v);
+  bindIf("a_func", v=>d.alco_func=v);
+  bindIf("a_fam", v=>d.alco_fam=v);
+
+  bindIf("wd_free", v=>d.wd_free=v);
+
+  bindIf("ant_follow", v=>d.ant_follow=v);
+  bindIf("ant_contact", v=>d.ant_contact=v);
+  bindIf("ant_atcd", v=>d.ant_atcd=v);
+
+  bindIf("home_meds", v=>d.home_meds=v);
+
+  bindIf("mse_pres", v=>d.mse_pres=v);
+  bindIf("mse_disc", v=>d.mse_disc=v);
+  bindIf("mse_thought", v=>d.mse_thought=v);
+  bindIf("mse_mood", v=>d.mse_mood=v);
+  bindIf("mse_cog", v=>d.mse_cog=v);
+  bindIf("mse_insight", v=>d.mse_insight=v);
+  bindIf("mse_sleep", v=>d.mse_sleep=v);
+  bindIf("mse_free", v=>d.mse_free=v);
+
+  bindIf("sub_free", v=>d.sub_free=v);
+
+  bindIf("f_plan", v=>d.plan=v);
+  bindIf("f_suivi", v=>d.suivi=v);
+
+  bindIf("f_work", v=>d.work=v);
+  bindIf("f_summary", v=>d.summary=v);
+
+  // MSE modals triggers
+  const op = document.getElementById("openPercep");
+  if(op) op.onclick = ()=> openPerceptionModal();
+  const or = document.getElementById("openRisk");
+  if(or) or.onclick = ()=> openRiskModal();
+
+  // chips for substances / withdrawal
+  renderSubChips(d);
+  renderWdChips(d);
+
+  // taper inline
+  bindTaperInline();
+
+  save();
+}
+
+function bindIf(id, setter){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.oninput = ()=>{
+    setter(el.value);
+    save();
+    regen();
+  };
+}
+
+/* ------------------------------
+   Click-to-select chips: substances & withdrawal
+------------------------------ */
+const SUB_OPTIONS = [
+  {id:"alcool", label:"Alcool"},
+  {id:"cannabis", label:"Cannabis"},
+  {id:"stimulants", label:"Stimulants"},
+  {id:"benzo", label:"BZD"},
+  {id:"opio", label:"Opioïdes"},
+  {id:"tabac", label:"Tabac"},
+  {id:"autre", label:"Autre"}
+];
+
+const WD_OPTIONS = [
+  {id:"tremor", label:"Tremblements"},
+  {id:"sweat", label:"Sueurs"},
+  {id:"anx", label:"Anxiété"},
+  {id:"agit", label:"Agitation"},
+  {id:"insom", label:"Insomnie"},
+  {id:"nausea", label:"Nausées"},
+  {id:"hx_seiz", label:"ATCD convulsions"},
+  {id:"hx_dt", label:"ATCD DT"},
+  {id:"hall", label:"Hallucinations sevrage"}
+];
+
+function renderSubChips(d){
+  const wrap = document.getElementById("subChips");
+  if(!wrap) return;
+  d.sub_sel = d.sub_sel || [];
+  wrap.innerHTML = "";
+  SUB_OPTIONS.forEach(opt=>{
+    const c = document.createElement("div");
+    c.className = "chip"+(d.sub_sel.includes(opt.id)?" selected":"");
+    c.textContent = opt.label;
+    c.onclick = ()=>{
+      if(d.sub_sel.includes(opt.id)) d.sub_sel = d.sub_sel.filter(x=>x!==opt.id);
+      else d.sub_sel = [...d.sub_sel, opt.id];
+      save(); regen(); renderSubChips(d);
+    };
+    wrap.appendChild(c);
+  });
+}
+
+function renderWdChips(d){
+  const wrap = document.getElementById("wdChips");
+  if(!wrap) return;
+  d.wd_sel = d.wd_sel || [];
+  wrap.innerHTML = "";
+  WD_OPTIONS.forEach(opt=>{
+    const c = document.createElement("div");
+    c.className = "chip"+(d.wd_sel.includes(opt.id)?" selected":"");
+    c.textContent = opt.label;
+    c.onclick = ()=>{
+      if(d.wd_sel.includes(opt.id)) d.wd_sel = d.wd_sel.filter(x=>x!==opt.id);
+      else d.wd_sel = [...d.wd_sel, opt.id];
+      save(); regen(); renderWdChips(d);
+    };
+    wrap.appendChild(c);
+  });
+}
+
+/* ------------------------------
+   Sevrage generation logic
+   - Sequence pattern: D1-2 equal; then reduce 18h; then 12+18; then 12+18+22; repeat until morning-only.
+   - Temesta constraint: doses must be multiples of 1.25 mg (2.5 tablet halved).
+   - When J1 changes: all dates shift automatically (relative offsets preserved).
+------------------------------ */
+function enforceDoseRules(molecule, x){
+  x = Number(x);
+  if(!Number.isFinite(x)) return 0;
+  if(molecule==="Temesta"){
+    // only 1.25 increments
+    return Math.max(0, round125(x));
+  }
+  // Valium: keep 0.5 mg step input free (editable anyway)
+  return Math.max(0, round2(x));
+}
+
+function generateTaperSequence({molecule, startTotal, startDateISO}){
+  startTotal = Number(startTotal);
+  if(!(startTotal>0)) return [];
+
+  // choose step:
+  // - Temesta: 1.25 mg decrement steps
+  // - Valium: 5 mg decrement steps (default), but user can edit later
+  const step = (molecule==="Temesta") ? 1.25 : 5;
+
+  // starting quarter doses
+  let q = startTotal/4;
+  q = enforceDoseRules(molecule, q);
+
+  let d8=q, d12=q, d18=q, d22=q;
+
+  const rows=[];
+  const push = ()=>{
+    d8 = enforceDoseRules(molecule, d8);
+    d12 = enforceDoseRules(molecule, d12);
+    d18 = enforceDoseRules(molecule, d18);
+    d22 = enforceDoseRules(molecule, d22);
+    const total = enforceDoseRules(molecule, d8+d12+d18+d22);
+    rows.push({
+      dateISO: addDaysISO(startDateISO, rows.length),
+      d8, d12, d18, d22, total
+    });
+  };
+
+  // Day1-2 same
+  push(); push();
+
+  const morningOnly = ()=> (d8>0 && d12===0 && d18===0 && d22===0);
+  const safetyMax = 90; // allow > 7 days
+
+  let loops=0;
+  while(!morningOnly() && loops < safetyMax){
+    loops++;
+
+    // A reduce 18h
+    if(d18>0){
+      d18 = Math.max(0, d18 - step);
+      push();
+      if(morningOnly()) break;
+    }
+
+    // B reduce 12h + 18h
+    if(d12>0) d12 = Math.max(0, d12 - step);
+    if(d18>0) d18 = Math.max(0, d18 - step);
+    push();
+    if(morningOnly()) break;
+
+    // C reduce 12h + 18h + 22h
+    if(d12>0) d12 = Math.max(0, d12 - step);
+    if(d18>0) d18 = Math.max(0, d18 - step);
+    if(d22>0) d22 = Math.max(0, d22 - step);
+    push();
+    if(morningOnly()) break;
+
+    // If weird edge: morning becomes 0 but others remain, shift remaining to morning (editable anyway)
+    if(d8===0 && (d12+d18+d22)>0){
+      d8 = d12; d12=0;
+      push();
+    }
+  }
+
+  return rows;
+}
+
+function shiftTaperDates(newStartISO){
+  const sch = state.taper.schedule || [];
+  if(!sch.length){
+    state.taper.startDateISO = newStartISO;
+    return;
+  }
+  // Keep offsets from old start
+  const oldStart = sch[0].dateISO;
+  // Find day offset per row by index (most robust)
+  for(let i=0;i<sch.length;i++){
+    sch[i].dateISO = addDaysISO(newStartISO, i);
+  }
+  state.taper.startDateISO = newStartISO;
+}
+
+function renderTaperPreview(){
+  const sch = state.taper.schedule || [];
+  const prev = document.getElementById("tp_preview");
+  const len = document.getElementById("tp_len");
+  const hint = document.getElementById("tp_hint");
+  if(!prev || !len || !hint) return;
+
+  len.textContent = sch.length ? `${sch.length} jour(s)` : "—";
+  hint.textContent = (state.taper.molecule==="Temesta")
+    ? "Temesta : doses en multiples de 1,25 mg (comprimé 2,5 mg sécable)."
+    : "Valium : schéma généré, modifiable librement.";
+
+  if(!sch.length){
+    prev.innerHTML = `<div class="mini">Aucun schéma généré.</div>`;
+    return;
+  }
+
+  const show = sch.slice(0, Math.min(10, sch.length));
+  prev.innerHTML = show.map(r=>{
+    return `<div class="mini" style="display:flex;justify-content:space-between;gap:10px">
+      <span>${weekdayFR(r.dateISO)} ${frFromIso(r.dateISO)}</span>
+      <span>${r.d8}/${r.d12}/${r.d18}/${r.d22} → <strong>${r.total}</strong></span>
+    </div>`;
+  }).join("") + (sch.length>10 ? `<div class="mini" style="margin-top:8px">… (${sch.length-10} jour(s) supplémentaires)</div>`:"");
+}
+
+function bindTaperInline(){
+  const mol = document.getElementById("tp_mol");
+  const st  = document.getElementById("tp_start");
+  const dt  = document.getElementById("tp_date");
+  const gen = document.getElementById("tp_gen");
+  const op  = document.getElementById("tp_open");
+  const add = document.getElementById("tp_add");
+  if(!mol) return;
+
+  mol.value = state.taper.molecule || "Valium";
+  st.value  = state.taper.startTotal ?? 40;
+  dt.value  = state.taper.startDateISO || isoToday();
+
+  mol.onchange = ()=>{
+    state.taper.molecule = mol.value;
+    save(); regen();
+    renderTaperPreview();
+  };
+  st.oninput = ()=>{
+    state.taper.startTotal = num(st.value, state.taper.startTotal||40);
+    save();
+  };
+  dt.onchange = ()=>{
+    shiftTaperDates(dt.value || isoToday());
+    save(); regen();
+    renderTaperPreview();
+  };
+
+  gen.onclick = ()=>{
+    state.taper.molecule = mol.value;
+    state.taper.startTotal = num(st.value, 40);
+    state.taper.startDateISO = dt.value || isoToday();
+    state.taper.schedule = generateTaperSequence({
+      molecule: state.taper.molecule,
+      startTotal: state.taper.startTotal,
+      startDateISO: state.taper.startDateISO
+    });
     save(); renderAll();
   };
 
-  where.querySelector("#identite").value = state.ui.identite||"";
-  where.querySelector("#civilite").value = state.ui.civilite||"N";
-  where.querySelector("#signature").value = state.ui.signature||"";
+  op.onclick = ()=> openTaperModal();
+  add.onclick = ()=>{
+    if(!state.taper.schedule.length){
+      state.taper.schedule = generateTaperSequence({
+        molecule: state.taper.molecule,
+        startTotal: state.taper.startTotal || 40,
+        startDateISO: state.taper.startDateISO || isoToday()
+      });
+    }else{
+      const last = state.taper.schedule[state.taper.schedule.length-1];
+      state.taper.schedule.push({
+        dateISO: addDaysISO(last.dateISO, 1),
+        d8:last.d8, d12:last.d12, d18:last.d18, d22:last.d22,
+        total: enforceDoseRules(state.taper.molecule, last.d8+last.d12+last.d18+last.d22)
+      });
+    }
+    save(); renderAll();
+  };
 
-  where.querySelector("#identite").oninput = (e)=>{ state.ui.identite=e.target.value; save(); };
-  where.querySelector("#civilite").onchange = (e)=>{ state.ui.civilite=e.target.value; save(); };
-  where.querySelector("#signature").oninput = (e)=>{ state.ui.signature=e.target.value; save(); };
+  renderTaperPreview();
+}
 
-  const list = (state.mode==="clinical" ? TEMPLATES.clinical : TEMPLATES.email);
-  const tplCount = where.querySelector("#tplCount");
-  const tplList = where.querySelector("#tplList");
-  const tplSearch = where.querySelector("#tplSearch");
+/* ------------------------------
+   Output generation (fluid, no bullets)
+   - Treatment placed after anamnesis (as requested)
+   - For sevrage admission: alcool detail integrated in anamnesis block
+------------------------------ */
+function buildSubstancesText(d){
+  const sel = d.sub_sel || [];
+  if(!sel.length && !cleanSpaces(d.sub_free)) return "";
+  const map = Object.fromEntries(SUB_OPTIONS.map(x=>[x.id, x.label.toLowerCase()]));
+  const parts = sel.map(id=>map[id]).filter(Boolean);
+  let s = parts.length ? `consommations : ${joinCommas(parts)}` : "";
+  const free = cleanSpaces(d.sub_free);
+  if(free) s = s ? `${s}, ${free}` : free;
+  return s;
+}
+function buildWithdrawalText(d){
+  const sel = d.wd_sel || [];
+  if(!sel.length && !cleanSpaces(d.wd_free)) return "";
+  const map = Object.fromEntries(WD_OPTIONS.map(x=>[x.id, x.label.toLowerCase()]));
+  const parts = sel.map(id=>map[id]).filter(Boolean);
+  let s = parts.length ? `symptômes de sevrage : ${joinCommas(parts)}` : "";
+  const free = cleanSpaces(d.wd_free);
+  if(free) s = s ? `${s}, ${free}` : free;
+  return s;
+}
+function buildAlcoholDetailText(d){
+  const bits=[];
+  if(cleanSpaces(d.alco_type)) bits.push(`type ${d.alco_type}`);
+  if(cleanSpaces(d.alco_qte)) bits.push(`quantités ${d.alco_qte}`);
+  if(cleanSpaces(d.alco_mom)) bits.push(`moments ${d.alco_mom}`);
+  if(cleanSpaces(d.alco_hist)) bits.push(`ancienneté et trajectoire ${d.alco_hist}`);
+  if(cleanSpaces(d.alco_func)) bits.push(`fonction ${d.alco_func}`);
+  if(cleanSpaces(d.alco_fam)) bits.push(`familial ${d.alco_fam}`);
+  if(!bits.length) return "";
+  return `Au plan alcoologique, ${joinCommas(bits)}.`;
+}
+function buildMSEText(d){
+  const parts=[];
+  if(cleanSpaces(d.mse_pres)) parts.push(`présentation et psychomotricité : ${d.mse_pres}`);
+  if(cleanSpaces(d.mse_disc)) parts.push(`discours : ${d.mse_disc}`);
+  if(cleanSpaces(d.mse_thought)) parts.push(`pensée : ${d.mse_thought}`);
+  if(cleanSpaces(d.mse_mood)) parts.push(`humeur et affects : ${d.mse_mood}`);
+  if(cleanSpaces(d.mse_cog)) parts.push(`cognition : ${d.mse_cog}`);
+  if(cleanSpaces(d.mse_sleep)) parts.push(`fonctions instinctuelles : ${d.mse_sleep}`);
+  if(cleanSpaces(d.mse_insight)) parts.push(`insight et jugement : ${d.mse_insight}`);
+  if(cleanSpaces(d.mse_free)) parts.push(d.mse_free);
+  if(!parts.length) return "À l’examen mental, l’entretien est possible avec une collaboration globalement préservée.";
+  return `À l’examen mental, ${joinCommas(parts)}.`;
+}
 
-  function renderTplList(){
-    const q=(tplSearch.value||"").toLowerCase().trim();
-    tplList.innerHTML="";
-    const filtered = q ? list.filter(t=>t.name.toLowerCase().includes(q)) : list;
-    tplCount.textContent = `${filtered.length}`;
-    filtered.forEach(t=>{
-      const div=document.createElement("div");
-      div.className="tplItem"+(t.id===state.tplId?" active":"");
-      div.innerHTML=`<b>${t.name}</b><small>${state.mode==="clinical"?"Clinique":"Email"}</small>`;
-      div.onclick=()=>{ state.tplId=t.id; ensureTpl(); save(); renderAll(); };
-      tplList.appendChild(div);
-    });
+function buildTaperText(){
+  const sch = state.taper.schedule || [];
+  if(!sch.length) return "";
+  const first = sch[0], last = sch[sch.length-1];
+  const mol = state.taper.molecule;
+  const dur = sch.length;
+  return `Le sevrage est planifié sous ${mol}, dose initiale ${state.taper.startTotal} mg/j, sur ${dur} jour(s), avec une décroissance progressive des prises de 18h, puis 12h et 22h, jusqu’à une prise unique le matin, schéma final ${last.d8}/${last.d12}/${last.d18}/${last.d22}.`;
+}
+
+function buildMedsTextForTpl(){
+  const meds = state.medsByTpl[state.tplId] || [];
+  if(!meds.length) return "";
+  const parts = meds.map(m=>{
+    const freq = (m.freq||[]).length ? `, ${joinCommas(m.freq)}` : "";
+    const route = m.route ? `, ${m.route}` : "";
+    const note = cleanSpaces(m.note) ? `, ${m.note}` : "";
+    const dose = cleanSpaces(m.dose) ? ` ${m.dose}` : "";
+    return `${m.name}${dose}${route}${freq}${note}`.trim();
+  });
+  return `Traitement : ${joinCommas(parts)}.`;
+}
+
+function regen(){
+  if(state.output.locked) return;
+  $("output").value = generateDoc();
+  updateReqChip();
+}
+
+function generateDoc(){
+  const tpl = getTpl(state.tplId);
+  const d = state.data[state.tplId] || {};
+  const patient = cleanSpaces(state.ui.patient || "la personne");
+  const date = todayFR();
+
+  const sentences = [];
+
+  // Email template special
+  if(state.tplId==="mail"){
+    const mail = state.data.mail || {};
+    const subj = cleanSpaces(mail.subject) || "—";
+    const body = (mail.body||"").trim() || "";
+    return `Objet : ${subj}\n\n${body}`.trim();
   }
-  tplSearch.oninput = renderTplList;
-  renderTplList();
 
-  where.querySelector("#openDSM").onclick = openDSMModal;
+  // Intro (depends)
+  if(state.tplId==="adm_s1_u74"){
+    sentences.push(capSentence(`Admission en unité de sevrage alcool ce ${date} pour ${cleanSpaces(d.motif)||"prise en charge d’un trouble de l’usage d’alcool"}`));
+  }else if(state.tplId==="suivi_psy"){
+    sentences.push(capSentence(`Rapport de suivi psychiatrique concernant ${patient}, rédigé ce ${date}`));
+    if(cleanSpaces(d.motif)) sentences.push(capSentence(`Le suivi s’inscrit dans le cadre de ${d.motif}`));
+  }else{
+    sentences.push(capSentence(`Je vois ${patient} en consultation de psychiatrie ce ${date}${cleanSpaces(d.motif)?`, dans le cadre de ${d.motif}`:""}`));
+  }
+
+  if(cleanSpaces(d.contexte)) sentences.push(capSentence(`Le contexte est le suivant : ${d.contexte}`));
+
+  // Anamnese
+  if(cleanSpaces(d.anamnese)) sentences.push(capSentence(`Sur le plan anamnestique, ${d.anamnese}`));
+
+  // Alcohol detail inside anamnesis for S1 sevrage
+  if(state.tplId==="adm_s1_u74"){
+    const alco = buildAlcoholDetailText(d);
+    if(alco) sentences.push(cleanSpaces(alco)); // already ended with .
+    const wd = buildWithdrawalText(d);
+    if(wd) sentences.push(capSentence(`Concernant le sevrage, ${wd}`));
+  }
+
+  // Antecedents / follow-up
+  if(cleanSpaces(d.ant_follow) || cleanSpaces(d.ant_contact) || cleanSpaces(d.ant_atcd)){
+    const bits=[];
+    if(cleanSpaces(d.ant_follow)) bits.push(`suivi : ${d.ant_follow}`);
+    if(cleanSpaces(d.ant_contact)) bits.push(`contact : ${d.ant_contact}`);
+    if(cleanSpaces(d.ant_atcd)) bits.push(`antécédents : ${d.ant_atcd}`);
+    sentences.push(capSentence(`Antécédents et suivi, ${joinCommas(bits)}`));
+  }
+
+  // Home meds + meds selected (requested placement: after anamnesis & before MSE)
+  const medsAuto = buildMedsTextForTpl();
+  const home = cleanSpaces(d.home_meds);
+  if(home || medsAuto){
+    const bits=[];
+    if(home) bits.push(home);
+    if(medsAuto) bits.push(medsAuto.replace(/^Traitement :\s*/,""));
+    sentences.push(capSentence(`Traitement au domicile et/ou proposé, ${joinCommas(bits).replace(/\.\s*$/,"")}`));
+  }
+
+  // MSE (+ modals text)
+  sentences.push(buildMSEText(d));
+
+  // Perceptions + risk (if selected)
+  const perc = buildPerceptionsText();
+  if(perc) sentences.push(perc);
+  const risk = buildRiskText();
+  if(risk) sentences.push(risk);
+
+  // Substances (general)
+  const sub = buildSubstancesText(d);
+  if(sub) sentences.push(capSentence(`Sur le plan des consommations, ${sub}`));
+
+  // Taper
+  if(tpl.blocks.includes("taper")){
+    const ttxt = buildTaperText();
+    if(ttxt) sentences.push(cleanSpaces(ttxt));
+  }
+
+  // Summary
+  if(cleanSpaces(d.summary)) sentences.push(capSentence(d.summary));
+
+  // Plan
+  if(cleanSpaces(d.plan) || cleanSpaces(d.suivi)){
+    const bits=[];
+    if(cleanSpaces(d.plan)) bits.push(d.plan);
+    if(cleanSpaces(d.suivi)) bits.push(`suivi : ${d.suivi}`);
+    sentences.push(capSentence(`Plan, ${joinCommas(bits)}`));
+  }
+
+  // Work
+  if(cleanSpaces(d.work)) sentences.push(capSentence(`Concernant l’activité professionnelle, ${d.work}`));
+
+  // Signature (optional in output)
+  const sig = cleanSpaces(state.ui.signature);
+  if(sig) sentences.push(`${sig}.`);
+
+  // Dedupe + connectors
+  let out = dedupe(sentences);
+  out = addConnectors(out);
+  return out.join(" ");
 }
 
-/* ---------------------------
-   Main content
---------------------------- */
-function renderMain(){
-  const tpl = activeTpl();
-  $("chipMode").textContent = "Mode : " + (state.mode==="clinical" ? "Clinique" : "Email");
-  $("chipTpl").textContent = "Modèle : " + tpl.name;
-  $("docTitle").textContent = (state.mode==="clinical" ? "Clinique" : "Email");
-
-  if(state.mode==="clinical") renderClinicalForm();
-  else renderEmailForm();
-
-  $("output").value = generate();
-}
-function activeTpl(){
-  const list = (state.mode==="clinical" ? TEMPLATES.clinical : TEMPLATES.email);
-  return list.find(t=>t.id===state.tplId) || list[0];
+function addConnectors(sentences){
+  const con = state.ui.connectors || DEFAULT_CONNECTORS;
+  const out=[];
+  let prev="";
+  let i=0;
+  for(let s of sentences){
+    const start = s.slice(0,20).toLowerCase();
+    if(prev && start.slice(0,10)===prev.slice(0,10)){
+      const c = con[i % con.length];
+      i++;
+      s = capSentence(`${c}, ${s[0].toLowerCase()+s.slice(1).replace(/[.!?]$/,"")}`);
+    }
+    out.push(s); prev=start;
+  }
+  return out;
 }
 
-/* ---- Clinical form: sobre + panneaux (DSM via modal) ---- */
-function renderClinicalForm(){
-  const vv=v();
-  const html = `
+/* ------------------------------
+   Perceptions & Risk (modals)
+------------------------------ */
+function buildPerceptionsText(){
+  const del = state.mse.delusions;
+  const hal = state.mse.hallucinations;
+  const parts=[];
+  if(del){
+    const bits=[];
+    if(del.themes?.length) bits.push(`thèmes ${joinCommas(del.themes)}`);
+    if(del.types?.length) bits.push(`type ${joinCommas(del.types)}`);
+    if(del.adhesion) bits.push(`adhésion ${del.adhesion}`);
+    if(del.insight) bits.push(`insight ${del.insight}`);
+    if(del.note) bits.push(del.note);
+    parts.push(`présence d’idées délirantes${bits.length?`, ${joinCommas(bits)}`:""}`);
+  }
+  if(hal){
+    const bits=[];
+    if(hal.modalities?.length) bits.push(joinCommas(hal.modalities));
+    if(hal.critique) bits.push(`critique ${hal.critique}`);
+    if(hal.context) bits.push(hal.context);
+    if(hal.note) bits.push(hal.note);
+    parts.push(`hallucinations${bits.length?`, ${joinCommas(bits)}`:""}`);
+  }
+  if(!parts.length) return "";
+  return capSentence(`Perceptions, ${joinCommas(parts)}`);
+}
+
+function buildRiskText(){
+  const r = state.mse.risk || {};
+  const s = r.suicidal;
+  const h = r.hetero;
+  const parts=[];
+  if(s){
+    const bits=[];
+    if(s.ideation) bits.push(s.ideation);
+    if(s.intent) bits.push(`intention ${s.intent}`);
+    if(s.plan) bits.push(`plan ${s.plan}`);
+    if(s.means) bits.push(`moyens ${s.means}`);
+    if(s.action) bits.push(`mesures ${s.action}`);
+    parts.push(`suicide, ${joinCommas(bits)}`);
+  }
+  if(h){
+    const bits=[];
+    if(h.level) bits.push(h.level);
+    if(h.targets) bits.push(`cibles ${h.targets}`);
+    if(h.action) bits.push(`mesures ${h.action}`);
+    parts.push(`hétéro-agressif, ${joinCommas(bits)}`);
+  }
+  if(!parts.length) return "";
+  return capSentence(`Sécurité, ${joinCommas(parts)}`);
+}
+
+/* ------------------------------
+   Modals framework
+------------------------------ */
+function openModal(title, bodyHTML, footHTML){
+  $("modalTitle").textContent = title;
+  $("modalBody").innerHTML = bodyHTML;
+  $("modalFoot").innerHTML = footHTML || "";
+  $("mask").style.display = "flex";
+}
+function closeModal(){
+  $("mask").style.display = "none";
+  $("modalBody").innerHTML = "";
+  $("modalFoot").innerHTML = "";
+}
+$("modalClose").onclick = closeModal;
+$("mask").addEventListener("click", (e)=>{ if(e.target.id==="mask") closeModal(); });
+
+function openInfo(title, msg){
+  openModal(title, `<div class="mini">${esc(msg)}</div>`, `<button id="infoOk">OK</button>`);
+  $("infoOk").onclick = closeModal;
+}
+
+/* ------------------------------
+   Medications modal: by category + click select + route/frequency
+   - Minimal typing: click chips
+------------------------------ */
+$("btnMeds").onclick = ()=> openMedsModal();
+
+function openMedsModal(){
+  ensureData();
+  const selected = state.medsByTpl[state.tplId] || [];
+  const byCat = {};
+  for(const m of MED_LIB){
+    if(!byCat[m.cat]) byCat[m.cat]=[];
+    byCat[m.cat].push(m);
+  }
+
+  const cats = Object.keys(byCat).sort((a,b)=>a.localeCompare(b));
+  const body = `
     <div class="row">
       <div class="col">
-        <label>Contexte (court)</label>
-        <input id="ctx" placeholder="urgences, facteurs de stress, logement…" />
+        <label>Recherche</label>
+        <input id="medSearch" placeholder="nom, dose…" />
       </div>
       <div class="col">
-        <label>Médication / plan (libre)</label>
-        <input id="plan" placeholder="ex. Atarax si besoin, HDJ, groupe…" />
+        <label>Catégorie</label>
+        <select id="medCat">
+          <option value="__all">Tout</option>
+          ${cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")}
+        </select>
       </div>
     </div>
+
+    <div class="sep"></div>
 
     <div class="section">
       <div class="sectionHead">
-        <b>DSM — sélection clinique</b>
-        <span class="small">ouvrir pour cocher</span>
+        <div class="left">
+          <svg class="ico muted" viewBox="0 0 24 24"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M7 7h10"/><path d="M6 7v12a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7"/></svg>
+          <b>Sélection</b>
+        </div>
+        <span class="mini" id="medCount">${selected.length} item(s)</span>
       </div>
-      <div class="row">
-        <button class="btn" id="btnPickDx">Choisir un diagnostic (surbrillance)</button>
-        <span class="chip" id="dxChip">DX : ${vv.dxName||"—"}</span>
+      <div class="sectionBody">
+        <div id="medList" class="suggestGrid"></div>
       </div>
-      <small class="small">Le DX sélectionné sert à générer une phrase clinique + liste de critères cochés (paraphrasés).</small>
     </div>
 
-    <div class="section">
-      <div class="sectionHead"><b>Examen mental (libre + rapide)</b><span class="small">style narratif</span></div>
-      <textarea id="mse" class="mono" placeholder="calme, collaborant·e, humeur…, ruminations…, sécurité… + consommations."></textarea>
-    </div>
+    <div class="sep"></div>
 
     <div class="section">
-      <div class="sectionHead"><b>Consommations (toujours)</b><span class="small">intégrées au texte</span></div>
-      <div class="grid" id="subGrid"></div>
-      <label>Complément libre</label>
-      <input id="subFree" placeholder="ex. diminution récente, sport ressource…" />
+      <div class="sectionHead">
+        <div class="left">
+          <svg class="ico muted" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h6"/></svg>
+          <b>Détails (pour item sélectionné)</b>
+        </div>
+        <span class="mini" id="medFocusName">—</span>
+      </div>
+      <div class="sectionBody" id="medDetail">
+        <div class="mini">Clique d’abord sur un médicament dans la liste.</div>
+      </div>
     </div>
   `;
-  $("content").innerHTML = html;
 
-  $("ctx").value = vv.ctx||"";
-  $("plan").value = vv.plan||"";
-  $("mse").value = vv.mse||"";
-  $("subFree").value = vv.subFree||"";
+  const foot = `
+    <button id="medApply" style="border-radius:16px;background:var(--glass2)">Appliquer</button>
+    <button id="medClear" style="border-radius:16px;background:var(--glass2)">Vider</button>
+  `;
 
-  $("ctx").oninput = e=>{ setV("ctx", e.target.value); $("output").value=generate(); };
-  $("plan").oninput = e=>{ setV("plan", e.target.value); $("output").value=generate(); };
-  $("mse").oninput = e=>{ setV("mse", e.target.value); $("output").value=generate(); };
-  $("subFree").oninput = e=>{ setV("subFree", e.target.value); $("output").value=generate(); };
+  openModal("Médicaments", body, foot);
 
-  // substances quick list
-  const SUB = [
-    {id:"alc", label:"Alcool", phrase:"usage d’alcool (souvent à visée anxiolytique)"},
-    {id:"can", label:"Cannabis", phrase:"usage de cannabis"},
-    {id:"stims", label:"Stimulants", phrase:"usage de stimulants"},
-    {id:"bzd", label:"BZD", phrase:"usage de benzodiazépines (à préciser)"},
-    {id:"cut", label:"Diminution", phrase:"diminution récente"},
-    {id:"sport", label:"Ressource sport", phrase:"réinvestissement du sport comme ressource"}
-  ];
-  const sel = vv.subSel || [];
-  const grid=$("subGrid"); grid.innerHTML="";
-  SUB.forEach(it=>{
-    const div=document.createElement("div");
-    div.className="chk";
-    div.innerHTML = `
-      <input type="checkbox" ${sel.includes(it.id)?"checked":""}/>
-      <div><b>${it.label}</b><small>${it.phrase}</small></div>
+  let focusedMedId = null;
+
+  const isSelected = (id)=> selected.some(x=>x.medId===id);
+  const getSelected = (id)=> selected.find(x=>x.medId===id);
+
+  function renderList(){
+    const q = ($("medSearch").value||"").toLowerCase().trim();
+    const cat = $("medCat").value;
+    const listWrap = $("medList");
+    listWrap.innerHTML = "";
+
+    const items = MED_LIB.filter(m=>{
+      const okCat = (cat==="__all") ? true : (m.cat===cat);
+      const okQ = !q || m.name.toLowerCase().includes(q) || (m.defaultDose||"").toLowerCase().includes(q);
+      return okCat && okQ;
+    });
+
+    items.forEach(m=>{
+      const div = document.createElement("div");
+      div.className = "sugg";
+      div.style.borderColor = isSelected(m.id) ? "var(--selbr)" : "var(--line)";
+      div.style.background = isSelected(m.id) ? "var(--selbg)" : "var(--tap)";
+      div.innerHTML = `<b>${esc(m.name)}</b><small>${esc(m.cat)}${m.defaultDose?` • ${esc(m.defaultDose)}`:""}</small>`;
+      div.onclick = ()=>{
+        if(isSelected(m.id)){
+          // toggle off
+          const idx = selected.findIndex(x=>x.medId===m.id);
+          if(idx>=0) selected.splice(idx,1);
+          if(focusedMedId===m.id) focusedMedId=null;
+        }else{
+          selected.push({
+            medId: m.id,
+            name: m.name,
+            dose: m.defaultDose || "",
+            route: (m.routes||[])[0] || "",
+            freq: [],
+            note: ""
+          });
+          focusedMedId = m.id;
+        }
+        $("medCount").textContent = `${selected.length} item(s)`;
+        renderList();
+        renderDetail();
+      };
+      listWrap.appendChild(div);
+    });
+  }
+
+  function renderDetail(){
+    const box = $("medDetail");
+    const name = $("medFocusName");
+
+    if(!focusedMedId){
+      name.textContent = "—";
+      box.innerHTML = `<div class="mini">Clique sur un médicament pour préciser dose/prise.</div>`;
+      return;
+    }
+
+    const meta = MED_LIB.find(x=>x.id===focusedMedId);
+    const cur = getSelected(focusedMedId);
+    if(!meta || !cur){
+      focusedMedId=null;
+      renderDetail();
+      return;
+    }
+
+    name.textContent = meta.name;
+
+    box.innerHTML = `
+      <div class="row">
+        <div class="col">
+          <label>Dose</label>
+          <input id="md_dose" value="${esc(cur.dose)}" placeholder="ex. 80 mg"/>
+        </div>
+        <div class="col">
+          <label>Voie</label>
+          <div class="chips" id="md_routes"></div>
+        </div>
+      </div>
+
+      <label>Fréquence / moment</label>
+      <div class="chips" id="md_freq"></div>
+
+      <label>Note</label>
+      <input id="md_note" value="${esc(cur.note)}" placeholder="tolérance, prudence, etc."/>
     `;
-    div.querySelector("input").onchange = (e)=>{
-      const next = e.target.checked ? [...new Set([...sel, it.id])] : sel.filter(x=>x!==it.id);
-      setV("subSel", next);
-      $("output").value=generate();
-      renderClinicalForm(); // refresh ticks cleanly
-    };
-    grid.appendChild(div);
-  });
 
-  $("btnPickDx").onclick = openDSMModal;
+    // dose
+    $("md_dose").oninput = (e)=>{ cur.dose = e.target.value; };
+
+    // routes
+    const rWrap = $("md_routes");
+    rWrap.innerHTML = "";
+    (meta.routes||["per os"]).forEach(r=>{
+      const c = document.createElement("div");
+      c.className = "chip small"+(cur.route===r?" selected":"");
+      c.textContent = r;
+      c.onclick = ()=>{
+        cur.route = r;
+        renderDetail();
+      };
+      rWrap.appendChild(c);
+    });
+
+    // freq
+    const fWrap = $("md_freq");
+    fWrap.innerHTML = "";
+    (meta.freq||[]).forEach(f=>{
+      const c = document.createElement("div");
+      c.className = "chip"+((cur.freq||[]).includes(f)?" selected":"");
+      c.textContent = f;
+      c.onclick = ()=>{
+        cur.freq = cur.freq || [];
+        if(cur.freq.includes(f)) cur.freq = cur.freq.filter(x=>x!==f);
+        else cur.freq = [...cur.freq, f];
+        renderDetail();
+      };
+      fWrap.appendChild(c);
+    });
+
+    // note
+    $("md_note").oninput = (e)=>{ cur.note = e.target.value; };
+  }
+
+  $("medSearch").oninput = renderList;
+  $("medCat").onchange = renderList;
+
+  $("medApply").onclick = ()=>{
+    state.medsByTpl[state.tplId] = selected;
+    save(); regen();
+    closeModal();
+  };
+
+  $("medClear").onclick = ()=>{
+    state.medsByTpl[state.tplId] = [];
+    save(); regen();
+    closeModal();
+  };
+
+  renderList();
+  renderDetail();
 }
 
-/* ---- Email form ---- */
-function renderEmailForm(){
-  const tpl = activeTpl();
-  const vv=v();
+/* ------------------------------
+   Perceptions modal (délires / hallucinations) — click selections
+------------------------------ */
+$("btnPercep").onclick = ()=> openPerceptionModal();
 
-  const fields = tpl.fields || [];
-  const html = `
+function openPerceptionModal(){
+  const DEL_TYPES = ["interprétatif","intuitif","halluciné","imagination délirante","non précisé"];
+  const DEL_THEMES = ["persécution","référence","grandeur","mystique","somatique","jalousie","autre"];
+  const HAL_MOD = ["auditives","visuelles","olfactives","cénesthésiques","autres"];
+
+  const del = state.mse.delusions || { types:[], themes:[], adhesion:"", insight:"", note:"" };
+  const hal = state.mse.hallucinations || { modalities:[], critique:"", context:"", note:"" };
+
+  const body = `
     <div class="row">
       <div class="col">
-        <label>Destinataire (nom)</label>
-        <input id="toName" placeholder="Mme … / M. … / Dr …" />
+        <div class="section">
+          <div class="sectionHead">
+            <div class="left"><b>Délires</b></div>
+            <div class="chips"><div class="chip small ${state.mse.delusions?"selected":""}" id="delOn">Actif</div></div>
+          </div>
+          <div class="sectionBody">
+            <label>Types</label>
+            <div class="chips" id="delTypes"></div>
+            <label>Thèmes</label>
+            <div class="chips" id="delThemes"></div>
+
+            <div class="row">
+              <div class="col">
+                <label>Adhésion</label>
+                <select id="delAdh">
+                  <option value="">—</option>
+                  <option value="faible">faible</option>
+                  <option value="modérée">modérée</option>
+                  <option value="forte">forte</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>Insight</label>
+                <select id="delIns">
+                  <option value="">—</option>
+                  <option value="préservé">préservé</option>
+                  <option value="partiel">partiel</option>
+                  <option value="absent">absent</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Note</label>
+            <input id="delNote" value="${esc(del.note)}" placeholder="nuance courte…"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="section">
+          <div class="sectionHead">
+            <div class="left"><b>Hallucinations</b></div>
+            <div class="chips"><div class="chip small ${state.mse.hallucinations?"selected":""}" id="halOn">Actif</div></div>
+          </div>
+          <div class="sectionBody">
+            <label>Modalités</label>
+            <div class="chips" id="halMods"></div>
+
+            <div class="row">
+              <div class="col">
+                <label>Critique</label>
+                <select id="halCrit">
+                  <option value="">—</option>
+                  <option value="bonne">bonne</option>
+                  <option value="partielle">partielle</option>
+                  <option value="absente">absente</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>Contexte</label>
+                <input id="halCtx" value="${esc(hal.context)}" placeholder="nocturne, sevrage, stress…"/>
+              </div>
+            </div>
+
+            <label>Note</label>
+            <input id="halNote" value="${esc(hal.note)}" placeholder="nuance courte…"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const foot = `
+    <button id="perApply" style="border-radius:16px;background:var(--glass2)">Appliquer</button>
+    <button id="perClear" style="border-radius:16px;background:var(--glass2)">Effacer</button>
+  `;
+
+  openModal("Perceptions", body, foot);
+
+  let delActive = !!state.mse.delusions;
+  let halActive = !!state.mse.hallucinations;
+
+  const toggleChip = (el, on)=>{
+    el.classList.toggle("selected", on);
+  };
+
+  // init selects
+  $("delAdh").value = del.adhesion || "";
+  $("delIns").value = del.insight || "";
+  $("halCrit").value = hal.critique || "";
+
+  // chips
+  function renderMulti(wrapId, options, currentArr){
+    const wrap = $(wrapId);
+    wrap.innerHTML = "";
+    options.forEach(o=>{
+      const c = document.createElement("div");
+      c.className = "chip small"+(currentArr.includes(o)?" selected":"");
+      c.textContent = o;
+      c.onclick = ()=>{
+        if(currentArr.includes(o)) currentArr.splice(currentArr.indexOf(o),1);
+        else currentArr.push(o);
+        renderMulti(wrapId, options, currentArr);
+      };
+      wrap.appendChild(c);
+    });
+  }
+
+  renderMulti("delTypes", DEL_TYPES, del.types);
+  renderMulti("delThemes", DEL_THEMES, del.themes);
+  renderMulti("halMods", HAL_MOD, hal.modalities);
+
+  // active toggles
+  $("delOn").onclick = ()=>{
+    delActive = !delActive;
+    toggleChip($("delOn"), delActive);
+  };
+  $("halOn").onclick = ()=>{
+    halActive = !halActive;
+    toggleChip($("halOn"), halActive);
+  };
+
+  $("perApply").onclick = ()=>{
+    if(delActive){
+      state.mse.delusions = {
+        types: del.types,
+        themes: del.themes,
+        adhesion: $("delAdh").value || "",
+        insight: $("delIns").value || "",
+        note: $("delNote").value || ""
+      };
+    }else{
+      state.mse.delusions = null;
+    }
+
+    if(halActive){
+      state.mse.hallucinations = {
+        modalities: hal.modalities,
+        critique: $("halCrit").value || "",
+        context: $("halCtx").value || "",
+        note: $("halNote").value || ""
+      };
+    }else{
+      state.mse.hallucinations = null;
+    }
+
+    save(); regen(); closeModal();
+  };
+
+  $("perClear").onclick = ()=>{
+    state.mse.delusions = null;
+    state.mse.hallucinations = null;
+    save(); regen(); closeModal();
+  };
+}
+
+/* ------------------------------
+   Risk modal
+------------------------------ */
+$("btnRisk").onclick = ()=> openRiskModal();
+
+function openRiskModal(){
+  const s = (state.mse.risk?.suicidal) || { ideation:"", intent:"", plan:"", means:"", action:"" };
+  const h = (state.mse.risk?.hetero) || { level:"", targets:"", action:"" };
+
+  let sActive = !!state.mse.risk?.suicidal;
+  let hActive = !!state.mse.risk?.hetero;
+
+  const body = `
+    <div class="row">
+      <div class="col">
+        <div class="section">
+          <div class="sectionHead">
+            <div class="left"><b>Suicide</b></div>
+            <div class="chips"><div class="chip small ${sActive?"selected":""}" id="suOn">Actif</div></div>
+          </div>
+          <div class="sectionBody">
+            <label>Idées</label>
+            <select id="suIdea">
+              <option value="">—</option>
+              <option value="absence d’idées suicidaires">absence</option>
+              <option value="idées noires diffuses">diffuses</option>
+              <option value="idées suicidaires">présentes</option>
+            </select>
+
+            <div class="row">
+              <div class="col">
+                <label>Intention</label>
+                <select id="suIntent">
+                  <option value="">—</option>
+                  <option value="faible">faible</option>
+                  <option value="modérée">modérée</option>
+                  <option value="élevée">élevée</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>Plan</label>
+                <select id="suPlan">
+                  <option value="">—</option>
+                  <option value="absent">absent</option>
+                  <option value="flou">flou</option>
+                  <option value="structuré">structuré</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Moyens</label>
+            <input id="suMeans" value="${esc(s.means)}" placeholder="accessibles / non accessibles…"/>
+
+            <label>Mesures</label>
+            <input id="suAct" value="${esc(s.action)}" placeholder="surveillance, hospitalisation…"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="section">
+          <div class="sectionHead">
+            <div class="left"><b>Hétéro</b></div>
+            <div class="chips"><div class="chip small ${hActive?"selected":""}" id="heOn">Actif</div></div>
+          </div>
+          <div class="sectionBody">
+            <label>Niveau</label>
+            <select id="heLevel">
+              <option value="">—</option>
+              <option value="absence de menace">absence</option>
+              <option value="irritabilité sans menace">irritabilité</option>
+              <option value="menaces verbales">menaces</option>
+              <option value="risque élevé / passage à l’acte">élevé</option>
+            </select>
+
+            <label>Cibles / contexte</label>
+            <input id="heTargets" value="${esc(h.targets)}" placeholder="cibles, contexte…"/>
+
+            <label>Mesures</label>
+            <input id="heAct" value="${esc(h.action)}" placeholder="cadre, sécurisation…"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const foot = `
+    <button id="riskApply" style="border-radius:16px;background:var(--glass2)">Appliquer</button>
+    <button id="riskClear" style="border-radius:16px;background:var(--glass2)">Effacer</button>
+  `;
+
+  openModal("Sécurité", body, foot);
+
+  $("suIdea").value = s.ideation || "";
+  $("suIntent").value = s.intent || "";
+  $("suPlan").value = s.plan || "";
+  $("heLevel").value = h.level || "";
+
+  $("suOn").onclick = ()=>{ sActive=!sActive; $("suOn").classList.toggle("selected", sActive); };
+  $("heOn").onclick = ()=>{ hActive=!hActive; $("heOn").classList.toggle("selected", hActive); };
+
+  $("riskApply").onclick = ()=>{
+    state.mse.risk = state.mse.risk || {};
+    if(sActive){
+      state.mse.risk.suicidal = {
+        ideation: $("suIdea").value || "",
+        intent: $("suIntent").value || "",
+        plan: $("suPlan").value || "",
+        means: $("suMeans").value || "",
+        action: $("suAct").value || ""
+      };
+    }else state.mse.risk.suicidal = null;
+
+    if(hActive){
+      state.mse.risk.hetero = {
+        level: $("heLevel").value || "",
+        targets: $("heTargets").value || "",
+        action: $("heAct").value || ""
+      };
+    }else state.mse.risk.hetero = null;
+
+    save(); regen(); closeModal();
+  };
+
+  $("riskClear").onclick = ()=>{
+    state.mse.risk = {suicidal:null, hetero:null};
+    save(); regen(); closeModal();
+  };
+}
+
+/* ------------------------------
+   Sevrage modal (full table)
+   - Weekday + date displayed
+   - Changing J1 shifts all rows automatically
+   - Temesta enforces 1.25 increments
+------------------------------ */
+$("btnTaper").onclick = ()=> openTaperModal();
+
+function openTaperModal(){
+  if(!state.taper.schedule) state.taper.schedule = [];
+
+  const body = `
+    <div class="row">
+      <div class="col">
+        <label>Molécule</label>
+        <select id="tm_mol">
+          <option value="Valium">Valium</option>
+          <option value="Temesta">Temesta</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>Dose départ (mg/j)</label>
+        <input id="tm_start" type="number" step="0.5" min="0"/>
+      </div>
+      <div class="col">
+        <label>Date J1</label>
+        <input id="tm_date" type="date"/>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+    <div class="chips">
+      <div class="chip" id="tm_gen">Générer</div>
+      <div class="chip" id="tm_add">+ Jour</div>
+      <div class="chip" id="tm_trim">Couper après matin seul</div>
+    </div>
+
+    <div class="sep"></div>
+    <div class="mini" id="tm_note"></div>
+
+    <div class="section" style="margin-top:10px">
+      <div class="sectionHead">
+        <div class="left">
+          <svg class="ico muted" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/></svg>
+          <b>Tableau (éditable)</b>
+        </div>
+        <span class="mini" id="tm_count">—</span>
+      </div>
+      <div class="sectionBody" style="overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Jour</th>
+              <th>8h</th><th>12h</th><th>18h</th><th>22h</th><th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="tm_rows"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  const foot = `
+    <button id="tm_apply" style="border-radius:16px;background:var(--glass2)">Appliquer</button>
+    <button id="tm_clear" style="border-radius:16px;background:var(--glass2)">Vider</button>
+  `;
+
+  openModal("Schéma sevrage", body, foot);
+
+  $("tm_mol").value = state.taper.molecule || "Valium";
+  $("tm_start").value = state.taper.startTotal ?? 40;
+  $("tm_date").value = state.taper.startDateISO || isoToday();
+
+  const note = $("tm_note");
+  const updateNote = ()=>{
+    note.textContent = (state.taper.molecule==="Temesta")
+      ? "Temesta : uniquement multiples de 1,25 mg (2,5 mg sécable)."
+      : "Valium : schéma modifiable librement.";
+  };
+  updateNote();
+
+  function renderRows(){
+    const sch = state.taper.schedule || [];
+    $("tm_count").textContent = sch.length ? `${sch.length} jour(s)` : "—";
+    const tb = $("tm_rows");
+    tb.innerHTML = "";
+
+    sch.forEach((r, i)=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>
+          <div class="mini">${weekdayFR(r.dateISO)} ${frFromIso(r.dateISO)}</div>
+        </td>
+        <td><input class="num" data-k="d8" data-i="${i}" type="number" step="0.5" value="${r.d8}"></td>
+        <td><input class="num" data-k="d12" data-i="${i}" type="number" step="0.5" value="${r.d12}"></td>
+        <td><input class="num" data-k="d18" data-i="${i}" type="number" step="0.5" value="${r.d18}"></td>
+        <td><input class="num" data-k="d22" data-i="${i}" type="number" step="0.5" value="${r.d22}"></td>
+        <td><input class="num" type="number" value="${r.total}" disabled></td>
+      `;
+      tb.appendChild(tr);
+    });
+
+    tb.querySelectorAll("input[data-k]").forEach(inp=>{
+      inp.oninput = ()=>{
+        const i = Number(inp.dataset.i);
+        const k = inp.dataset.k;
+        const sch = state.taper.schedule;
+        const row = sch[i];
+        if(!row) return;
+
+        row[k] = enforceDoseRules(state.taper.molecule, num(inp.value, 0));
+        row.total = enforceDoseRules(state.taper.molecule, row.d8+row.d12+row.d18+row.d22);
+        renderRows();
+      };
+    });
+  }
+
+  $("tm_mol").onchange = ()=>{
+    state.taper.molecule = $("tm_mol").value;
+    updateNote();
+    // enforce rounding across schedule
+    state.taper.schedule = (state.taper.schedule||[]).map(r=>{
+      const d8 = enforceDoseRules(state.taper.molecule, r.d8);
+      const d12 = enforceDoseRules(state.taper.molecule, r.d12);
+      const d18 = enforceDoseRules(state.taper.molecule, r.d18);
+      const d22 = enforceDoseRules(state.taper.molecule, r.d22);
+      const total = enforceDoseRules(state.taper.molecule, d8+d12+d18+d22);
+      return {...r, d8,d12,d18,d22,total};
+    });
+    renderRows();
+  };
+
+  $("tm_date").onchange = ()=>{
+    const v = $("tm_date").value || isoToday();
+    shiftTaperDates(v);
+    renderRows();
+  };
+
+  $("tm_gen").onclick = ()=>{
+    state.taper.startTotal = num($("tm_start").value, 40);
+    state.taper.startDateISO = $("tm_date").value || isoToday();
+    state.taper.molecule = $("tm_mol").value;
+    state.taper.schedule = generateTaperSequence({
+      molecule: state.taper.molecule,
+      startTotal: state.taper.startTotal,
+      startDateISO: state.taper.startDateISO
+    });
+    renderRows();
+  };
+
+  $("tm_add").onclick = ()=>{
+    if(!state.taper.schedule.length){
+      state.taper.schedule = generateTaperSequence({
+        molecule: state.taper.molecule,
+        startTotal: state.taper.startTotal || 40,
+        startDateISO: state.taper.startDateISO || isoToday()
+      });
+    }else{
+      const last = state.taper.schedule[state.taper.schedule.length-1];
+      state.taper.schedule.push({
+        dateISO: addDaysISO(last.dateISO, 1),
+        d8:last.d8, d12:last.d12, d18:last.d18, d22:last.d22,
+        total: enforceDoseRules(state.taper.molecule, last.d8+last.d12+last.d18+last.d22)
+      });
+    }
+    renderRows();
+  };
+
+  $("tm_trim").onclick = ()=>{
+    const sch = state.taper.schedule || [];
+    const idx = sch.findIndex(r=> (r.d8>0 && r.d12===0 && r.d18===0 && r.d22===0));
+    if(idx>=0) state.taper.schedule = sch.slice(0, idx+1);
+    renderRows();
+  };
+
+  $("tm_apply").onclick = ()=>{
+    state.taper.startTotal = num($("tm_start").value, state.taper.startTotal||40);
+    state.taper.startDateISO = $("tm_date").value || state.taper.startDateISO || isoToday();
+    save(); renderAll(); closeModal();
+  };
+
+  $("tm_clear").onclick = ()=>{
+    state.taper.schedule = [];
+    save(); renderAll(); closeModal();
+  };
+
+  renderRows();
+}
+
+/* ------------------------------
+   Email modal (category “mail”)
+------------------------------ */
+$("btnMail").onclick = ()=> openMailModal();
+
+function openMailModal(){
+  const mail = state.data.mail || (state.data.mail = {});
+  const presets = SUGG.mail;
+
+  const body = `
+    <div class="row">
+      <div class="col">
+        <label>Modèle</label>
+        <select id="mailPreset">
+          <option value="">—</option>
+          <option value="envoi_rapport">Envoi rapport</option>
+          <option value="changement_rdv">Changement RDV</option>
+          <option value="proposition_rdv">Proposition RDV</option>
+          <option value="accuse_reception">Accusé réception</option>
+        </select>
       </div>
       <div class="col">
         <label>Objet</label>
-        <input id="subject" />
+        <input id="mailSubj" value="${esc(mail.subject)}" placeholder="Objet"/>
       </div>
     </div>
 
-    <div class="section">
-      <div class="sectionHead"><b>Champs du modèle</b><span class="small">minimal</span></div>
-      <div id="fields"></div>
-    </div>
+    <label>Corps</label>
+    <textarea id="mailBody" class="mono" style="min-height:260px" placeholder="Texte du mail…">${esc(mail.body)}</textarea>
 
-    <div class="section">
-      <div class="sectionHead"><b>Signature</b><span class="small">global</span></div>
-      <div class="small">Signature utilisée : ${state.ui.signature||"—"}</div>
-    </div>
+    <div class="sep"></div>
+    <div class="mini">Ces modèles sont volontairement sobres et adaptables.</div>
   `;
-  $("content").innerHTML = html;
 
-  $("toName").value = vv.toName||"";
-  $("subject").value = vv.subject || tpl.subject;
-
-  $("toName").oninput = e=>{ setV("toName", e.target.value); $("output").value=generate(); };
-  $("subject").oninput = e=>{ setV("subject", e.target.value); $("output").value=generate(); };
-
-  const wrap=$("fields"); wrap.innerHTML="";
-  fields.forEach(f=>{
-    const lab=document.createElement("label");
-    lab.textContent = labelFor(f);
-    const inp=document.createElement("input");
-    inp.value = vv[f]||"";
-    inp.placeholder = placeholderFor(f);
-    inp.oninput = e=>{ setV(f, e.target.value); $("output").value=generate(); };
-    wrap.appendChild(lab);
-    wrap.appendChild(inp);
-  });
-}
-function labelFor(f){
-  return ({
-    attachment:"Nom du document",
-    context:"Contexte (optionnel)",
-    oldDate:"Ancienne date",
-    newDate:"Nouvelle date",
-    reason:"Motif (optionnel)",
-    topic:"Sujet (optionnel)"
-  })[f] || f;
-}
-function placeholderFor(f){
-  return ({
-    attachment:"ex. rapport / attestation / note",
-    oldDate:"ex. 25/02/2026 à 14h",
-    newDate:"ex. 27/02/2026 à 09h",
-    reason:"ex. contrainte d’agenda",
-    topic:"ex. rendez-vous / document"
-  })[f] || "";
-}
-
-/* ---------------------------
-   Generators
---------------------------- */
-function buildDxText(vv){
-  if(!vv.dxId) return "";
-  const dx = DSM.find(d=>d.id===vv.dxId);
-  if(!dx) return "";
-  const selIds = state.dsm.sel[dx.id] || [];
-  const sel = dx.checklist.filter(x=>selIds.includes(x.id));
-  const free = state.dsm.free[dx.id] || "";
-  return dx.make(sel, free);
-}
-function buildSubText(vv){
-  const SUBMAP = {
-    alc:"usage d’alcool (à préciser: fréquence/quantités)",
-    can:"usage de cannabis",
-    stims:"usage de stimulants",
-    bzd:"usage de benzodiazépines (à préciser)",
-    cut:"diminution récente des consommations",
-    sport:"réinvestissement d’activités ressources (sport)"
-  };
-  const sel = vv.subSel || [];
-  const parts = sel.map(id=>SUBMAP[id]).filter(Boolean);
-  const free = (vv.subFree||"").trim();
-  if(!parts.length && !free) return "non documenté";
-  return sentenceJoin(parts) + (free ? (parts.length?(", "+free):free) : "");
-}
-
-function generate(){
-  const tpl = activeTpl();
-  const vv = v();
-  if(state.mode==="clinical") return tpl.build(vv);
-  else return tpl.build(vv);
-}
-
-/* Clinical builds */
-function buildConsult(vv){
-  const ident = state.ui.identite || "la personne";
-  const ctx = (vv.ctx||"").trim();
-  const dxTxt = buildDxText(vv);
-  const mse = (vv.mse||"").trim();
-  const sub = buildSubText(vv);
-  const plan = (vv.plan||"").trim();
-
-  const parts = [];
-  parts.push(`Consultation psychiatrique — ${todayFR()}`);
-  parts.push("");
-  if(ctx) parts.push(`Contexte : ${ctx}`);
-  parts.push(`Je vois ${ident} en consultation dans le cadre d’un suivi.`);
-  if(dxTxt) parts.push(`Sur le plan clinique, ${dxTxt}`);
-  if(mse) parts.push(`À l’examen mental : ${mse}`);
-  parts.push(`Sur le plan des consommations : ${sub}.`);
-  if(plan) parts.push(`Plan : ${plan}`);
-  return clean(parts.join("\n"));
-}
-
-function buildWorkAttest(vv){
-  const ident = state.ui.identite || "la personne";
-  const ctx = (vv.ctx||"").trim();
-  const dxTxt = buildDxText(vv);
-  const mse = (vv.mse||"").trim();
-  const sub = buildSubText(vv);
-  const plan = (vv.plan||"").trim();
-
-  const parts = [];
-  parts.push("Attestation médicale");
-  parts.push("");
-  parts.push(`Je vois en consultation de psychiatrie ${ident} de manière régulière.`);
-  if(dxTxt) parts.push(`Le tableau clinique est compatible avec : ${dxTxt}`);
-  if(ctx) parts.push(`Contexte : ${ctx}`);
-  if(mse) parts.push(`Éléments cliniques actuels : ${mse}`);
-  parts.push(`Consommations : ${sub}.`);
-  if(plan) parts.push(`Prise en charge : ${plan}`);
-  parts.push("À ce stade, l’état clinique actuel n’est pas encore compatible avec une reprise d’activité professionnelle. Une réévaluation sera réalisée en fonction de l’évolution.");
-  parts.push("");
-  parts.push(`Fait pour servir et valoir ce que de droit. — ${todayFR()}`);
-  return clean(parts.join("\n"));
-}
-
-function buildEvol(vv){
-  const ident = state.ui.identite || "la personne";
-  const ctx = (vv.ctx||"").trim();
-  const dxTxt = buildDxText(vv);
-  const mse = (vv.mse||"").trim();
-  const sub = buildSubText(vv);
-  const plan = (vv.plan||"").trim();
-
-  const parts=[];
-  parts.push(`Note d’évolution — ${todayFR()}`);
-  parts.push(`Patient·e : ${ident}`);
-  parts.push("");
-  if(ctx) parts.push(`Contexte/évolution : ${ctx}`);
-  if(dxTxt) parts.push(`Clinique : ${dxTxt}`);
-  if(mse) parts.push(`Examen mental : ${mse}`);
-  parts.push(`Consommations : ${sub}.`);
-  if(plan) parts.push(`Plan : ${plan}`);
-  return clean(parts.join("\n"));
-}
-
-/* Email builds */
-function buildEmailAttach(vv){
-  const to = (vv.toName||"").trim();
-  const subj = (vv.subject||"Transmission du document").trim();
-  const attach = (vv.attachment||"le document demandé").trim();
-  const ctx = (vv.context||"").trim();
-  const sig = state.ui.signature || "";
-  return clean(`Objet : ${subj}
-
-Bonjour ${to},
-
-Veuillez trouver en pièce jointe ${attach}.
-${ctx?("\n"+ctx+"\n"):""}
-
-Bien à vous,
-${sig}`);
-}
-function buildEmailResched(vv){
-  const to=(vv.toName||"").trim();
-  const subj=(vv.subject||"Modification de rendez-vous").trim();
-  const oldD=(vv.oldDate||"__").trim();
-  const newD=(vv.newDate||"__").trim();
-  const reason=(vv.reason||"").trim();
-  const sig=state.ui.signature||"";
-  return clean(`Objet : ${subj}
-
-Bonjour ${to},
-
-Je reviens vers vous concernant le rendez-vous prévu le ${oldD}.
-Je vous propose de le déplacer au ${newD}.
-${reason?("\nMotif : "+reason+"\n"):""}
-
-Merci de me confirmer si cela vous convient.
-
-Bien à vous,
-${sig}`);
-}
-function buildEmailAck(vv){
-  const to=(vv.toName||"").trim();
-  const subj=(vv.subject||"Bien reçu").trim();
-  const topic=(vv.topic||"").trim();
-  const sig=state.ui.signature||"";
-  return clean(`Objet : ${subj}
-
-Bonjour ${to},
-
-Bien reçu pour votre message${topic?(" concernant "+topic):""}.
-Je prends note et je reviens vers vous dès que possible.
-
-Bien à vous,
-${sig}`);
-}
-
-/* ---------------------------
-   DSM modal (surbrillance)
---------------------------- */
-function openDSMModal(){
-  $("modalMask").style.display="flex";
-  renderDSMModal();
-}
-function closeDSMModal(){
-  $("modalMask").style.display="none";
-}
-$("btnCloseModal").onclick = closeDSMModal;
-$("modalMask").addEventListener("click",(e)=>{
-  if(e.target.id==="modalMask") closeDSMModal();
-});
-
-function renderDSMModal(){
-  const vv=v();
-  const html = `
-    <div class="row">
-      <div class="col">
-        <label>Recherche diagnostic</label>
-        <input id="dxSearch" placeholder="dépression, anxiété, PTSD, borderline…" />
-      </div>
-      <div class="col">
-        <label>Diagnostic sélectionné (pour ce document)</label>
-        <select id="dxPick"></select>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="sectionHead"><b>Résumé</b><span class="small">clinique</span></div>
-      <div class="small" id="dxCore">—</div>
-    </div>
-
-    <div class="section">
-      <div class="sectionHead"><b>Checklist (paraphrasée)</b><span class="small">multi</span></div>
-      <div class="grid" id="dxGrid"></div>
-      <label>Complément libre</label>
-      <input id="dxFree" placeholder="nuance, chronologie, retentissement, facteurs…" />
-    </div>
-
-    <div class="section">
-      <div class="sectionHead"><b>Formulation générée</b><span class="small">aperçu</span></div>
-      <textarea id="dxPreview" class="mono" style="min-height:140px"></textarea>
-    </div>
-
-    <div class="row">
-      <button class="btn ok" id="dxApply">Appliquer au document</button>
-      <button class="btn" id="dxClear">Effacer sélection</button>
-    </div>
+  const foot = `
+    <button id="mailUse" style="border-radius:16px;background:var(--glass2)">Utiliser comme “Email”</button>
+    <button id="mailApply" style="border-radius:16px;background:var(--glass2)">Appliquer</button>
   `;
-  $("modalBody").innerHTML = html;
 
-  const dxPick=$("dxPick");
-  DSM.forEach(d=>{
-    const o=document.createElement("option");
-    o.value=d.id; o.textContent=d.name;
-    dxPick.appendChild(o);
-  });
-  dxPick.value = vv.dxId || DSM[0].id;
+  openModal("Emails types", body, foot);
 
-  const dxSearch=$("dxSearch");
-  dxSearch.oninput = ()=>{
-    const q=(dxSearch.value||"").toLowerCase().trim();
-    dxPick.innerHTML="";
-    DSM.filter(d=>d.name.toLowerCase().includes(q) || d.core.toLowerCase().includes(q)).forEach(d=>{
-      const o=document.createElement("option");
-      o.value=d.id; o.textContent=d.name;
-      dxPick.appendChild(o);
-    });
-    if(dxPick.options.length) dxPick.value = dxPick.options[0].value;
-    renderDxPane(dxPick.value);
+  $("mailPreset").onchange = ()=>{
+    const k = $("mailPreset").value;
+    if(!k) return;
+    mail.subject = presets[k].subject;
+    mail.body = presets[k].body.replace("Dr …", state.ui.signature || "Dr …");
+    $("mailSubj").value = mail.subject;
+    $("mailBody").value = mail.body;
   };
 
-  dxPick.onchange = ()=> renderDxPane(dxPick.value);
-  renderDxPane(dxPick.value);
+  $("mailSubj").oninput = (e)=>{ mail.subject = e.target.value; };
+  $("mailBody").oninput = (e)=>{ mail.body = e.target.value; };
 
-  $("dxApply").onclick = ()=>{
-    const id = dxPick.value;
-    const d = DSM.find(x=>x.id===id);
-    setV("dxId", id);
-    setV("dxName", d?d.name:"—");
-    $("output").value = generate();
-    renderAll();
-    closeDSMModal();
-  };
-
-  $("dxClear").onclick = ()=>{
-    setV("dxId", "");
-    setV("dxName", "");
-    $("output").value = generate();
-    renderAll();
-    closeDSMModal();
-  };
-}
-
-function renderDxPane(dxId){
-  const d = DSM.find(x=>x.id===dxId);
-  if(!d) return;
-  $("dxCore").textContent = d.core;
-
-  // load selections
-  state.dsm.sel[d.id] = state.dsm.sel[d.id] || [];
-  state.dsm.free[d.id] = state.dsm.free[d.id] || "";
-  const selIds = state.dsm.sel[d.id];
-
-  const grid=$("dxGrid");
-  grid.innerHTML="";
-  d.checklist.forEach(it=>{
-    const div=document.createElement("div");
-    div.className="chk";
-    div.innerHTML = `
-      <input type="checkbox" ${selIds.includes(it.id)?"checked":""}/>
-      <div><b>${it.label}</b><small>${it.phrase}</small></div>
-    `;
-    div.querySelector("input").onchange = (e)=>{
-      const next = e.target.checked ? [...new Set([...selIds, it.id])] : selIds.filter(x=>x!==it.id);
-      state.dsm.sel[d.id]=next;
-      save();
-      updateDxPreview(d);
-    };
-    grid.appendChild(div);
-  });
-
-  $("dxFree").value = state.dsm.free[d.id] || "";
-  $("dxFree").oninput = (e)=>{
-    state.dsm.free[d.id]=e.target.value;
+  $("mailApply").onclick = ()=>{
+    state.data.mail = mail;
     save();
-    updateDxPreview(d);
+    if(state.tplId==="mail") regen();
+    closeModal();
   };
 
-  updateDxPreview(d);
+  $("mailUse").onclick = ()=>{
+    state.data.mail = mail;
+    state.tplId = "mail";
+    save();
+    renderAll();
+    closeModal();
+  };
 }
 
-function updateDxPreview(d){
-  const selIds = state.dsm.sel[d.id] || [];
-  const sel = d.checklist.filter(x=>selIds.includes(x.id));
-  const free = state.dsm.free[d.id] || "";
-  $("dxPreview").value = d.make(sel, free);
+/* ------------------------------
+   Template builder (create/edit user template)
+   - Blocks can be ordered; minimal UI
+------------------------------ */
+$("btnTplEdit").onclick = ()=>{
+  const cur = allTemplates().find(t=>t.id===state.tplId);
+  if(cur && cur.user) openTemplateBuilder(cur.id);
+  else openTemplateBuilder(); // new by default
+};
+
+function openTemplateBuilder(editId=null){
+  const isEdit = !!editId;
+  const tpl = isEdit ? (state.templatesUser||[]).find(t=>t.id===editId) : null;
+
+  const curName = tpl?.name || "";
+  const curId = tpl?.id || "";
+  const curBlocks = tpl?.blocks ? [...tpl.blocks] : ["context","anamnese","mse","plan"];
+
+  const body = `
+    <div class="row">
+      <div class="col">
+        <label>Nom</label>
+        <input id="tb_name" value="${esc(curName)}" placeholder="Nom du modèle"/>
+      </div>
+      <div class="col">
+        <label>ID (sans espaces)</label>
+        <input id="tb_id" value="${esc(curId)}" placeholder="ex. mon_modele_1" ${isEdit?"disabled":""}/>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="section">
+      <div class="sectionHead">
+        <div class="left">
+          <svg class="ico muted" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h6"/></svg>
+          <b>Blocs du modèle (ordre)</b>
+        </div>
+        <span class="mini">cliquer pour ajouter/retirer</span>
+      </div>
+      <div class="sectionBody">
+        <label>Disponibles</label>
+        <div id="tb_all" class="chips"></div>
+
+        <div class="sep"></div>
+        <label>Actifs</label>
+        <div id="tb_active" class="chips"></div>
+
+        <div class="sep"></div>
+        <div class="chips">
+          <div class="chip" id="tb_up">Monter</div>
+          <div class="chip" id="tb_down">Descendre</div>
+          <div class="chip" id="tb_remove">Retirer</div>
+        </div>
+        <div class="mini" style="margin-top:8px">Sélectionne un bloc actif, puis “Monter/Descendre”.</div>
+      </div>
+    </div>
+  `;
+
+  const foot = `
+    <button id="tb_save" style="border-radius:16px;background:var(--glass2)">${isEdit?"Enregistrer":"Créer"}</button>
+    ${isEdit?`<button id="tb_delete" style="border-radius:16px;background:var(--glass2)">Supprimer</button>`:""}
+  `;
+
+  openModal(isEdit?"Éditer modèle":"Nouveau modèle", body, foot);
+
+  let active = curBlocks.filter(b=>BLOCKS.some(x=>x.id===b));
+  // ensure required basics always present
+  if(!active.includes("context")) active.unshift("context");
+  if(!active.includes("mse")) active.push("mse");
+  if(!active.includes("plan")) active.push("plan");
+
+  let selectedBlock = null;
+
+  const allWrap = $("tb_all");
+  const actWrap = $("tb_active");
+
+  function render(){
+    allWrap.innerHTML = "";
+    BLOCKS.forEach(b=>{
+      const c = document.createElement("div");
+      c.className = "chip small"+(active.includes(b.id)?" selected":"");
+      c.textContent = b.name;
+      c.title = b.id;
+      c.onclick = ()=>{
+        if(active.includes(b.id)){
+          // prevent removing critical blocks
+          if(["context","mse","plan"].includes(b.id)) return;
+          active = active.filter(x=>x!==b.id);
+          if(selectedBlock===b.id) selectedBlock=null;
+        }else{
+          active.push(b.id);
+        }
+        render();
+      };
+      allWrap.appendChild(c);
+    });
+
+    actWrap.innerHTML = "";
+    active.forEach(bid=>{
+      const meta = BLOCKS.find(x=>x.id===bid);
+      const c = document.createElement("div");
+      c.className = "chip"+(selectedBlock===bid?" selected":"");
+      c.textContent = meta ? meta.name : bid;
+      c.onclick = ()=>{
+        selectedBlock = (selectedBlock===bid) ? null : bid;
+        render();
+      };
+      actWrap.appendChild(c);
+    });
+  }
+
+  render();
+
+  $("tb_up").onclick = ()=>{
+    if(!selectedBlock) return;
+    const i = active.indexOf(selectedBlock);
+    if(i>0){
+      [active[i-1], active[i]] = [active[i], active[i-1]];
+      render();
+    }
+  };
+  $("tb_down").onclick = ()=>{
+    if(!selectedBlock) return;
+    const i = active.indexOf(selectedBlock);
+    if(i>=0 && i<active.length-1){
+      [active[i+1], active[i]] = [active[i], active[i+1]];
+      render();
+    }
+  };
+  $("tb_remove").onclick = ()=>{
+    if(!selectedBlock) return;
+    if(["context","mse","plan"].includes(selectedBlock)) return;
+    active = active.filter(x=>x!==selectedBlock);
+    selectedBlock = null;
+    render();
+  };
+
+  $("tb_save").onclick = ()=>{
+    const name = cleanSpaces($("tb_name").value);
+    let id = cleanSpaces($("tb_id").value).replace(/\s+/g,"_");
+    if(!name){
+      openInfo("Nom manquant", "Donne un nom au modèle.");
+      return;
+    }
+    if(!isEdit){
+      if(!id) id = "tpl_"+Math.random().toString(36).slice(2,8);
+      // ensure unique
+      if(allTemplates().some(t=>t.id===id)){
+        openInfo("ID déjà utilisé", "Choisis un ID unique.");
+        return;
+      }
+      state.templatesUser = state.templatesUser || [];
+      state.templatesUser.push({id, name, blocks: active});
+      ensureData();
+      state.tplId = id;
+    }else{
+      tpl.name = name;
+      tpl.blocks = active;
+    }
+    save(); renderAll(); closeModal();
+  };
+
+  if(isEdit){
+    $("tb_delete").onclick = ()=>{
+      if(!confirm("Supprimer ce modèle utilisateur ?")) return;
+      state.templatesUser = (state.templatesUser||[]).filter(t=>t.id!==editId);
+      // fallback to builtin
+      state.tplId = "consult_ambu";
+      save(); renderAll(); closeModal();
+    };
+  }
 }
 
-/* ---------------------------
-   Export/Import/Reset
---------------------------- */
-function exportState(){
-  const blob=new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=`psywriter-v2-${Date.now()}.json`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 2500);
-}
-function importState(){
-  const inp=document.createElement("input");
-  inp.type="file"; inp.accept="application/json";
-  inp.onchange=async()=>{
-    const f=inp.files[0]; if(!f) return;
-    try{
-      const txt=await f.text();
-      state={...state, ...JSON.parse(txt)};
-      save();
-      document.body.setAttribute("data-theme", state.theme);
-      ensureTpl();
+/* ------------------------------
+   UI: Sidebar render + Drawer mirror
+------------------------------ */
+function mountSidebar(el){
+  el.innerHTML = sidebarHTML();
+
+  // tab click
+  el.querySelectorAll(".tab").forEach(t=>{
+    t.onclick = ()=>{
+      sideTab = t.dataset.tab;
       renderAll();
-      alert("Import OK.");
-    }catch(e){ alert("Import invalide : "+e.message); }
-  };
-  inp.click();
-}
-function resetAll(){
-  if(!confirm("Reset complet ?")) return;
-  localStorage.removeItem(LS);
-  location.reload();
-}
-
-/* ---------------------------
-   Copy
---------------------------- */
-function copyOutput(){
-  $("output").select();
-  document.execCommand("copy");
-}
-
-/* ---------------------------
-   Drawer mobile
---------------------------- */
-function openDrawer(){
-  $("drawerMask").style.display="block";
-  $("drawer").classList.add("open");
-}
-function closeDrawer(){
-  $("drawerMask").style.display="none";
-  $("drawer").classList.remove("open");
-}
-$("drawerMask").onclick = closeDrawer;
-
-/* ---------------------------
-   Render all
---------------------------- */
-function renderAll(){
-  // Mount sidebar desktop and drawer
-  $("sideDesktop").innerHTML="";
-  mountSidebar($("sideDesktop"));
-
-  $("drawer").innerHTML = sidebarHTML();
-  mountSidebar($("drawer"));
-
-  // fix drawer close on template click in mobile
-  // (simple: close on any click in drawer list)
-  $("drawer").addEventListener("click",(e)=>{
-    if(e.target.closest(".tplItem") || e.target.id==="openDSM") closeDrawer();
+    };
   });
 
-  renderMain();
-
-  // dx chip update
-  const vv=v();
-  const dxChip=document.getElementById("dxChip");
-  if(dxChip) dxChip.textContent = "DX : " + (vv.dxName||"—");
+  renderSidebarBody(el);
 }
 
-/* ---------------------------
+/* ------------------------------
+   Output UI controls
+------------------------------ */
+function applyOutputSizing(){
+  const out = $("output");
+  if(state.output.big){
+    out.style.minHeight = "560px";
+  }else{
+    out.style.minHeight = "300px";
+  }
+}
+$("btnOutBig").onclick = ()=>{ state.output.big=true; save(); applyOutputSizing(); };
+$("btnOutSmall").onclick = ()=>{ state.output.big=false; save(); applyOutputSizing(); };
+$("btnOutLock").onclick = ()=>{
+  state.output.locked = !state.output.locked;
+  save();
+  $("btnOutLock").classList.toggle("selected", state.output.locked);
+};
+
+/* ------------------------------
    Header buttons
---------------------------- */
+------------------------------ */
 $("btnTheme").onclick = ()=>{
-  state.theme = (state.theme==="dark" ? "light" : "dark");
+  state.theme = (state.theme==="dark") ? "light" : "dark";
   document.body.setAttribute("data-theme", state.theme);
   save();
 };
-$("btnGenerate").onclick = ()=> $("output").value = generate();
-$("btnGenerate2").onclick = ()=> $("output").value = generate();
-$("btnCopy").onclick = copyOutput;
-$("btnCopy2").onclick = copyOutput;
-$("btnExport").onclick = exportState;
-$("btnImport").onclick = importState;
-$("btnReset").onclick = resetAll;
-$("btnDSM").onclick = openDSMModal;
+$("btnFocus").onclick = ()=>{
+  state.focus = !state.focus;
+  save();
+  renderAll();
+};
+$("btnCopy").onclick = ()=>{
+  $("output").select();
+  document.execCommand("copy");
+};
 
-$("btnMenu").onclick = openDrawer;
+/* Export / Import / Reset */
+$("btnExport").onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `noteflow-${Date.now()}.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+};
+$("btnImport").onclick = ()=>{
+  const inp = document.createElement("input");
+  inp.type="file"; inp.accept="application/json";
+  inp.onchange = async ()=>{
+    const f = inp.files[0];
+    if(!f) return;
+    try{
+      const txt = await f.text();
+      state = deepMerge(structuredClone(DEFAULT_STATE), JSON.parse(txt));
+      ensureData();
+      document.body.setAttribute("data-theme", state.theme);
+      save();
+      renderAll();
+      alert("Import OK.");
+    }catch(e){
+      alert("Import invalide : "+e.message);
+    }
+  };
+  inp.click();
+};
+$("btnReset").onclick = ()=>{
+  if(!confirm("Reset complet ?")) return;
+  localStorage.removeItem(LS);
+  location.reload();
+};
 
-/* Init */
+/* Mobile drawer */
+$("btnMenu").onclick = ()=>{
+  $("drawerMask").style.display="block";
+  $("drawer").classList.add("open");
+};
+$("drawerMask").onclick = ()=>{
+  $("drawerMask").style.display="none";
+  $("drawer").classList.remove("open");
+};
+
+/* Generate button */
+$("btnGenerate").onclick = ()=> regen();
+
+/* ------------------------------
+   Update required chip
+------------------------------ */
+function updateReqChip(){
+  const st = requiredStatus();
+  $("reqChip").innerHTML = st.ok
+    ? `<strong>OK</strong>`
+    : `<strong>${st.missing.join(", ")}</strong>`;
+}
+
+/* ------------------------------
+   Bind form inputs after render
+------------------------------ */
+function bindAllAfterRender(){
+  // output lock indicator
+  $("btnOutLock").classList.toggle("selected", state.output.locked);
+
+  // Apply output size
+  applyOutputSizing();
+
+  // update required chip
+  updateReqChip();
+
+  // If sevrage in current template, update preview
+  renderTaperPreview();
+}
+
+/* ------------------------------
+   Render everything
+------------------------------ */
+function renderAll(){
+  ensureData();
+  mountTplSelect();
+
+  // desktop sidebar
+  mountSidebar($("sidebar"));
+
+  // drawer sidebar (mobile)
+  $("drawer").innerHTML = sidebarHTML();
+  mountSidebar($("drawer"));
+
+  renderContent();
+
+  // regenerate if not locked
+  regen();
+
+  // bind after
+  bindAllAfterRender();
+}
+
+/* ------------------------------
+   Also: make output editable without breaking regen:
+   - If locked, regen does nothing; user edits manually.
+   - If unlocked, user edits output and it will persist until next regen;
+     we let it be editable but not saved as “source of truth”.
+------------------------------ */
+$("output").addEventListener("input", ()=>{
+  if(state.output.locked){
+    // keep user edits
+    return;
+  }
+  // if unlocked, allow manual but don't save into fields
+});
+
+/* ------------------------------
+   Boot
+------------------------------ */
 load();
+renderAll();
 </script>
 </body>
 </html>
